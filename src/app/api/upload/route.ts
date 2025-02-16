@@ -1,5 +1,5 @@
-import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
+import { put } from '@vercel/blob';
 
 export async function POST(request: Request): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
@@ -19,7 +19,8 @@ export async function POST(request: Request): Promise<NextResponse> {
     });
 
     return NextResponse.json(response);
-  } catch (error) {
+  } catch (err) {
+    console.error('Upload error:', err);
     return NextResponse.json(
       { error: 'Upload failed' },
       { status: 500 }

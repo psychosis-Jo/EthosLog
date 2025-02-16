@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import MDEditor, { commands } from '@uiw/react-md-editor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,41 +12,33 @@ interface DiaryEditorProps {
 }
 
 export function DiaryEditor({ onSubmit, onCancel }: DiaryEditorProps) {
-  const [title, setTitle] = React.useState('')
-  const [content, setContent] = React.useState('')
-  const [uploading, setUploading] = React.useState(false)
-
-  const handleSubmit = () => {
-    if (!title.trim()) {
-      // TODO: 添加错误提示
-      return
-    }
-    onSubmit(title, content)
-  }
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [uploading, setUploading] = useState(false)
 
   const handleImageUpload = async (file: File) => {
     try {
       setUploading(true)
       const filename = `${Date.now()}-${file.name}`
-      const formData = new FormData()
-      formData.append('file', file)
 
       const response = await fetch(`/api/upload?filename=${filename}`, {
         method: 'POST',
         body: file,
       })
 
-      if (!response.ok) throw new Error('Upload failed')
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Upload failed');
+      }
 
       const data = await response.json()
-      const imageUrl = data.url
+      const imageUrl = `${window.location.origin}${data.url}`
       
-      // 在光标位置插入图片
       const imageMarkdown = `![${file.name}](${imageUrl})\n`
-      setContent((prev) => prev + imageMarkdown)
+      setContent((prev: string) => prev + imageMarkdown)
     } catch (error) {
       console.error('Upload error:', error)
-      // TODO: 添加错误提示
+      alert('上传失败：' + (error as Error).message)
     } finally {
       setUploading(false)
     }
@@ -57,7 +49,7 @@ export function DiaryEditor({ onSubmit, onCancel }: DiaryEditorProps) {
     keyCommand: 'image',
     buttonProps: { 'aria-label': 'Insert image' },
     icon: <Upload className="w-4 h-4" />,
-    execute: async (state: { text: string; selection: any }) => {
+    execute: async () => {
       const input = document.createElement('input')
       input.type = 'file'
       input.accept = 'image/*'
@@ -69,6 +61,13 @@ export function DiaryEditor({ onSubmit, onCancel }: DiaryEditorProps) {
       }
       input.click()
     },
+  }
+
+  const handleSubmit = () => {
+    if (!title.trim()) {
+      return
+    }
+    onSubmit(title, content)
   }
 
   return (

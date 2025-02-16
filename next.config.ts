@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
     };
     return config;
   },
+  // 添加这个配置来处理上传的图片
+  images: {
+    domains: ['localhost'],
+  },
 };
 
 export default nextConfig; 
