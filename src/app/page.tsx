@@ -9,12 +9,22 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
-import { Plus, Eye, Pencil } from "lucide-react"
+import { Plus, Eye, Pencil, Trash2 } from "lucide-react"
 import { DiaryEditor } from "@/components/editor/diary-editor"
 import type { Database } from "@/lib/supabase"  // 导入类型
 import { useToast } from "@/components/ui/use-toast"
 import MDEditor from '@uiw/react-md-editor'
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const sanitizeSchema = {
   ...defaultSchema,
@@ -33,16 +43,21 @@ export default function HomePage() {
   const { toast } = useToast()
   const [selectedDiary, setSelectedDiary] = useState<Database['public']['tables']['diaries']['Row'] | null>(null)
   const [editingDiary, setEditingDiary] = useState<Database['public']['tables']['diaries']['Row'] | null>(null)
+  const [deletingDiary, setDeletingDiary] = useState<Database['public']['tables']['diaries']['Row'] | null>(null)
 
   const fetchDiaries = useCallback(async () => {
     try {
+      console.log('Fetching diaries for user:', user?.id)
       const { data, error } = await supabase
         .from('diaries')
         .select('*')
+        .eq('user_id', user?.id)
+        .is('deleted_at', null)  // 只获取未删除的日记
         .order('created_at', { ascending: false })
 
       if (error) throw error
 
+      console.log('Fetched diaries:', data)
       setDiaries(data)
     } catch (error) {
       console.error('Error fetching diaries:', error)
@@ -54,7 +69,7 @@ export default function HomePage() {
     } finally {
       setLoadingDiaries(false)
     }
-  }, [toast])
+  }, [toast, user?.id])
 
   useEffect(() => {
     if (!loading && !user) {
@@ -116,6 +131,39 @@ export default function HomePage() {
     setSelectedDiary(diary)
   }
 
+  const handleDelete = async () => {
+    if (!deletingDiary || !user) return
+
+    try {
+      console.log('Soft deleting diary:', deletingDiary.id)
+      // 使用 rpc 调用来执行软删除
+      const { error, data } = await supabase.rpc('soft_delete_diary', {
+        diary_id: deletingDiary.id
+      })
+
+      if (error) throw error
+      
+      // 更新本地状态
+      setDiaries(prevDiaries => 
+        prevDiaries.filter(d => d.id !== deletingDiary.id)
+      )
+      
+      setDeletingDiary(null)
+      toast({
+        title: "删除成功",
+        description: "日记已删除",
+      })
+    } catch (error) {
+      console.error('Error deleting diary:', error)
+      toast({
+        title: "删除失败",
+        description: "请稍后重试",
+        variant: "destructive",
+      })
+      setDeletingDiary(null)
+    }
+  }
+
   if (loading || loadingDiaries) {
     return <div>加载中...</div>
   }
@@ -161,6 +209,13 @@ export default function HomePage() {
                     onClick={() => handlePreview(diary)}
                   >
                     <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeletingDiary(diary)}
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -221,6 +276,23 @@ export default function HomePage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deletingDiary} onOpenChange={(open) => !open && setDeletingDiary(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除</AlertDialogTitle>
+            <AlertDialogDescription>
+              确定要删除这篇日记吗？此操作无法撤销。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              删除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   )
 }
