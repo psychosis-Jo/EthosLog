@@ -8,9 +8,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { Plus, Eye } from "lucide-react"
 import { DiaryEditor } from "@/components/editor/diary-editor"
 import type { Database } from "@/lib/supabase"  // 导入类型
+import { useToast } from "@/components/ui/use-toast"
 
 export default function HomePage() {
   const { user, loading } = useAuth()
@@ -18,6 +19,8 @@ export default function HomePage() {
   const [open, setOpen] = useState(false)
   const [diaries, setDiaries] = useState<Database['public']['tables']['diaries']['Row'][]>([])
   const [loadingDiaries, setLoadingDiaries] = useState(true)
+  const { toast } = useToast()
+  const [selectedDiary, setSelectedDiary] = useState<Database['public']['tables']['diaries']['Row'] | null>(null)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -40,6 +43,11 @@ export default function HomePage() {
       setDiaries(data)
     } catch (error) {
       console.error('Error fetching diaries:', error)
+      toast({
+        title: "加载失败",
+        description: "获取日记列表失败",
+        variant: "destructive",
+      })
     } finally {
       setLoadingDiaries(false)
     }
@@ -60,10 +68,23 @@ export default function HomePage() {
       if (error) throw error
 
       setOpen(false)
-      fetchDiaries() // 刷新日记列表
+      await fetchDiaries()
+      toast({
+        title: "保存成功",
+        description: "日记已保存",
+      })
     } catch (error) {
       console.error('Error saving diary:', error)
+      toast({
+        title: "保存失败",
+        description: "请稍后重试",
+        variant: "destructive",
+      })
     }
+  }
+
+  const handlePreview = (diary: Database['public']['tables']['diaries']['Row']) => {
+    setSelectedDiary(diary)
   }
 
   if (loading || loadingDiaries) {
@@ -90,10 +111,21 @@ export default function HomePage() {
         diaries.map(diary => (
           <Card key={diary.id} className="mb-4">
             <CardContent className="pt-6">
-              <div className="text-sm text-muted-foreground">
-                {new Date(diary.created_at).toLocaleDateString()}
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="text-sm text-muted-foreground">
+                    {new Date(diary.created_at).toLocaleDateString()}
+                  </div>
+                  <h3 className="text-lg font-medium mt-1">{diary.title}</h3>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handlePreview(diary)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
               </div>
-              <h3 className="text-lg font-medium mt-1">{diary.title}</h3>
               <Separator className="my-2" />
               <p className="text-sm text-muted-foreground">
                 {diary.analysis || '等待 AI 分析...'}
@@ -120,6 +152,18 @@ export default function HomePage() {
             onSubmit={handleSubmit}
             onCancel={() => setOpen(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* 预览弹窗 */}
+      <Dialog open={!!selectedDiary} onOpenChange={() => setSelectedDiary(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{selectedDiary?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="prose prose-sm mt-4">
+            {selectedDiary?.content}
+          </div>
         </DialogContent>
       </Dialog>
     </main>
