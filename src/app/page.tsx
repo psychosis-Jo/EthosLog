@@ -1,5 +1,8 @@
 "use client"
 
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -9,11 +12,27 @@ import { DiaryEditor } from "@/components/editor/diary-editor"
 import { useState } from "react"
 
 export default function HomePage() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login')
+    }
+  }, [user, loading, router])
 
   const handleSubmit = (title: string, content: string) => {
     console.log('提交日记:', { title, content })
     setOpen(false)
+  }
+
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  if (!user) {
+    return null
   }
 
   return (
