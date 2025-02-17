@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useAuth } from "@/lib/auth-context"  // 修正路径
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
@@ -34,16 +34,7 @@ export default function HomePage() {
   const [selectedDiary, setSelectedDiary] = useState<Database['public']['tables']['diaries']['Row'] | null>(null)
   const [editingDiary, setEditingDiary] = useState<Database['public']['tables']['diaries']['Row'] | null>(null)
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login')
-    }
-    if (user) {
-      fetchDiaries()
-    }
-  }, [user, loading, router])
-
-  const fetchDiaries = async () => {
+  const fetchDiaries = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('diaries')
@@ -63,7 +54,16 @@ export default function HomePage() {
     } finally {
       setLoadingDiaries(false)
     }
-  }
+  }, [toast])
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login')
+    }
+    if (user) {
+      fetchDiaries()
+    }
+  }, [user, loading, router, fetchDiaries])
 
   const handleEdit = (diary: Database['public']['tables']['diaries']['Row']) => {
     setEditingDiary(diary)
