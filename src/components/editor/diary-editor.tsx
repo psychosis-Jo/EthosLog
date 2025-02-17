@@ -42,6 +42,36 @@ export function DiaryEditor({ onSubmit, onCancel }: DiaryEditorProps) {
     } finally {
       setUploading(false)
     }
+    return (
+      <div className="flex flex-col gap-4" data-color-mode="light">
+        <Input
+          placeholder="日记标题"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="text-lg"
+        />
+        <div className="min-h-[400px] border rounded-md">
+          <MDEditor
+            value={content}
+            onChange={(value) => setContent(value || '')}
+            preview="live"
+            height={400}
+            commands={[
+              ...commands.getCommands(),
+              imageCommand,
+            ]}
+          />
+        </div>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onCancel} disabled={uploading}>
+            取消
+          </Button>
+          <Button onClick={handleSubmit} disabled={uploading}>
+            {uploading ? '上传中...' : '提交'}
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   const imageCommand = {

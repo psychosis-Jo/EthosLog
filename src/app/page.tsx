@@ -1,5 +1,6 @@
 "use client"
 
+import React from 'react'
 import { useAuth } from "@/lib/auth-context"  // 修正路径
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
@@ -12,6 +13,7 @@ import { Plus, Eye } from "lucide-react"
 import { DiaryEditor } from "@/components/editor/diary-editor"
 import type { Database } from "@/lib/supabase"  // 导入类型
 import { useToast } from "@/components/ui/use-toast"
+import MDEditor from '@uiw/react-md-editor'
 
 export default function HomePage() {
   const { user, loading } = useAuth()
@@ -161,8 +163,14 @@ export default function HomePage() {
           <DialogHeader>
             <DialogTitle>{selectedDiary?.title}</DialogTitle>
           </DialogHeader>
-          <div className="prose prose-sm mt-4">
-            {selectedDiary?.content}
+          <div data-color-mode="light">
+            <MDEditor
+              value={selectedDiary?.content || ''}
+              preview="preview"
+              hideToolbar
+              visibleDragbar={false}
+              height={400}
+            />
           </div>
         </DialogContent>
       </Dialog>

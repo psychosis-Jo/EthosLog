@@ -57,3 +57,22 @@
     @apply bg-background text-foreground;
   }
 } 
+
+.wmde-markdown {
+  background-color: transparent !important;
+}
+
+.wmde-markdown ul {
+  list-style-type: disc !important;
+  padding-left: 1.5em !important;
+}
+
+.wmde-markdown ol {
+  list-style-type: decimal !important;
+  padding-left: 1.5em !important;
+}
+
+.wmde-markdown img {
+  max-width: 100%;
+  height: auto;
+} 
