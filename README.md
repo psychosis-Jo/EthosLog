@@ -7,7 +7,10 @@ ETHOSLOG 是一个智能日记应用，帮助用户记录日常思考并通过 A
 - 📝 Markdown 编辑器支持
 - 🔒 用户认证和数据安全
 - 🗑️ 软删除机制
-- 🤖 AI 分析（即将推出）
+- 🤖 AI 分析
+  - 5W1H 结构化分析
+  - 实时分析状态
+  - 自动矛盾检测
 - 📊 数据可视化（计划中）
 
 ## 技术栈
@@ -18,6 +21,7 @@ ETHOSLOG 是一个智能日记应用，帮助用户记录日常思考并通过 A
 - **数据库**: Supabase (PostgreSQL)
 - **认证**: Supabase Auth
 - **编辑器**: react-md-editor
+- **AI 模型**: 阿里云百炼 deepseek-r1
 - **部署**: Vercel
 
 ## 开始使用
@@ -38,7 +42,10 @@ npm install
 # 复制环境变量模板
 cp .env.example .env.local
 
-# 编辑 .env.local 文件，填入你的 Supabase 配置
+# 编辑 .env.local 文件，填入你的配置
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+DASHSCOPE_API_KEY=your_dashscope_api_key
 ```
 
 4. 启动开发服务器
@@ -66,7 +73,11 @@ npm run dev
 - [x] 用户认证
 - [x] Markdown 支持
 - [x] 软删除机制
-- [ ] AI 分析集成
+- [x] AI 分析集成
+  - [x] 5W1H 结构化分析
+  - [x] 实时分析状态
+  - [ ] 情感分析
+  - [ ] 建议生成
 - [ ] 数据导出
 - [ ] 统计分析
 - [ ] 移动端适配

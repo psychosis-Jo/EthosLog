@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useCallback } from 'react'
-import { useAuth } from "@/lib/auth-context"  // 修正路径
+import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { analyzeDiary } from "@/lib/ai"
 
 const sanitizeSchema = {
   ...defaultSchema,
@@ -44,6 +45,7 @@ export default function HomePage() {
   const [selectedDiary, setSelectedDiary] = useState<Database['public']['tables']['diaries']['Row'] | null>(null)
   const [editingDiary, setEditingDiary] = useState<Database['public']['tables']['diaries']['Row'] | null>(null)
   const [deletingDiary, setDeletingDiary] = useState<Database['public']['tables']['diaries']['Row'] | null>(null)
+  const [analyzingId, setAnalyzingId] = useState<string | null>(null)
 
   const fetchDiaries = useCallback(async () => {
     try {
@@ -57,7 +59,12 @@ export default function HomePage() {
 
       if (error) throw error
 
-      console.log('Fetched diaries:', data)
+      console.log('Fetched diaries with analysis:', data.map(d => ({
+        id: d.id,
+        title: d.title,
+        analysis: d.analysis
+      })))
+      
       setDiaries(data)
     } catch (error) {
       console.error('Error fetching diaries:', error)
@@ -90,26 +97,80 @@ export default function HomePage() {
 
     try {
       if (editingDiary) {
-        // 更新已有日记
-        const { error } = await supabase
-          .from('diaries')
-          .update({ title, content })
-          .eq('id', editingDiary.id)
+        console.log('Page - 开始分析已有日记:', editingDiary.id);
+        setAnalyzingId(editingDiary.id);
+        const analysis = await analyzeDiary(content);
+        console.log('Page - 获取分析结果:', analysis);
 
-        if (error) throw error
+        const { data: updateData, error: updateError } = await supabase
+          .from('diaries')
+          .update({ 
+            title, 
+            content, 
+            analysis,
+            updated_at: new Date().toISOString()  // 明确设置更新时间
+          })
+          .eq('id', editingDiary.id)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error('Page - 更新数据库失败:', {
+            error: updateError,
+            details: updateError.details,
+            message: updateError.message,
+            hint: updateError.hint
+          });
+          throw updateError;
+        }
+
+        console.log('Page - 更新数据库成功:', updateData);
       } else {
         // 创建新日记
-        const { error } = await supabase
+        const { data: newDiary, error: insertError } = await supabase
           .from('diaries')
           .insert({
             user_id: user.id,
             title,
             content,
           })
+          .select()
+          .single()
 
-        if (error) throw error
+        if (insertError) throw insertError
+
+        setAnalyzingId(newDiary.id)
+        const analysis = await analyzeDiary(content)
+        
+        console.log('Page - 新日记分析结果:', analysis);
+
+        if (analysis) {
+          console.log('Page - 开始更新新日记分析结果:', {
+            id: newDiary.id,
+            analysis: analysis
+          });
+          
+          const { error: updateError, data: updateData } = await supabase
+            .from('diaries')
+            .update({ analysis })
+            .eq('id', newDiary.id)
+            .select();  // 添加 select() 来获取更新结果
+
+          if (updateError) {
+            console.error('Page - 更新新日记分析失败:', {
+              error: updateError,
+              details: updateError.details,
+              message: updateError.message,
+              hint: updateError.hint
+            });
+            throw updateError;
+          }
+          
+          console.log('Page - 新日记分析更新成功:', updateData);
+        }
       }
 
+      setAnalyzingId(null)
       setOpen(false)
       setEditingDiary(null)
       await fetchDiaries()
@@ -118,7 +179,8 @@ export default function HomePage() {
         description: editingDiary ? "日记已更新" : "日记已保存",
       })
     } catch (error) {
-      console.error('Error saving diary:', error)
+      console.error('Page - 处理失败:', error)
+      setAnalyzingId(null)
       toast({
         title: "保存失败",
         description: "请稍后重试",
@@ -221,7 +283,14 @@ export default function HomePage() {
               </div>
               <Separator className="my-2" />
               <p className="text-sm text-muted-foreground">
-                {diary.analysis || '等待 AI 分析...'}
+                {analyzingId === diary.id ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin">⚡</span>
+                    AI 正在分析...
+                  </span>
+                ) : (
+                  diary.analysis || '等待 AI 分析...'
+                )}
               </p>
             </CardContent>
           </Card>

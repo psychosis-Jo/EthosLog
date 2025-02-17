@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,   // 在构建时忽略 TypeScript 错误
   },
+  env: {
+    DASHSCOPE_API_KEY: process.env.DASHSCOPE_API_KEY,
+  },
 };
 
 export default nextConfig; 
