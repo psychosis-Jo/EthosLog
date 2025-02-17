@@ -1,38 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ETHOSLOG
 
-## Getting Started
+ETHOSLOG 是一个智能日记应用，帮助用户记录日常思考并通过 AI 获得深度分析洞察。
 
-First, run the development server:
+## 功能特点
 
+- 📝 Markdown 编辑器支持
+- 🔒 用户认证和数据安全
+- 🗑️ 软删除机制
+- 🤖 AI 分析（即将推出）
+- 📊 数据可视化（计划中）
+
+## 技术栈
+
+- **前端框架**: Next.js 14
+- **UI 组件**: shadcn/ui
+- **样式**: Tailwind CSS
+- **数据库**: Supabase (PostgreSQL)
+- **认证**: Supabase Auth
+- **编辑器**: react-md-editor
+- **部署**: Vercel
+
+## 开始使用
+
+1. 克隆项目
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/your-username/ethoslog.git
+cd ethoslog
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. 安装依赖
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. 环境配置
+```bash
+# 复制环境变量模板
+cp .env.example .env.local
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# 编辑 .env.local 文件，填入你的 Supabase 配置
+```
 
-## Learn More
+4. 启动开发服务器
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+访问 [http://localhost:3000](http://localhost:3000) 查看应用。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 数据库设置
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. 在 Supabase 中创建新项目
+2. 执行 `sql/diaries.sql` 中的数据库初始化脚本
+3. 配置 RLS (Row Level Security) 策略
 
-## Deploy on Vercel
+## 部署
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+项目使用 Vercel 进行部署。点击下面的按钮一键部署：
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/ethoslog)
 
-# ETHOSLOG
+## 开发路线图
+
+- [x] 基础日记功能
+- [x] 用户认证
+- [x] Markdown 支持
+- [x] 软删除机制
+- [ ] AI 分析集成
+- [ ] 数据导出
+- [ ] 统计分析
+- [ ] 移动端适配
+
+## 贡献
+
+欢迎提交 Pull Requests 和 Issues！
+
+## 许可证
+
+[MIT](LICENSE)
