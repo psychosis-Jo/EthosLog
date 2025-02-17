@@ -93,40 +93,25 @@ export default function HomePage() {
   }
 
   const handleSubmit = async (title: string, content: string) => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      if (editingDiary) {
-        console.log('Page - 开始分析已有日记:', editingDiary.id);
-        setAnalyzingId(editingDiary.id);
-        const analysis = await analyzeDiary(content);
-        console.log('Page - 获取分析结果:', analysis);
+      let diaryId: string;
 
-        const { data: updateData, error: updateError } = await supabase
+      // 1. 先保存日记
+      if (editingDiary) {
+        const { error: updateError } = await supabase
           .from('diaries')
           .update({ 
             title, 
-            content, 
-            analysis,
-            updated_at: new Date().toISOString()  // 明确设置更新时间
+            content,
+            updated_at: new Date().toISOString()
           })
-          .eq('id', editingDiary.id)
-          .select()
-          .single();
+          .eq('id', editingDiary.id);
 
-        if (updateError) {
-          console.error('Page - 更新数据库失败:', {
-            error: updateError,
-            details: updateError.details,
-            message: updateError.message,
-            hint: updateError.hint
-          });
-          throw updateError;
-        }
-
-        console.log('Page - 更新数据库成功:', updateData);
+        if (updateError) throw updateError;
+        diaryId = editingDiary.id;
       } else {
-        // 创建新日记
         const { data: newDiary, error: insertError } = await supabase
           .from('diaries')
           .insert({
@@ -135,59 +120,63 @@ export default function HomePage() {
             content,
           })
           .select()
-          .single()
+          .single();
 
-        if (insertError) throw insertError
-
-        setAnalyzingId(newDiary.id)
-        const analysis = await analyzeDiary(content)
-        
-        console.log('Page - 新日记分析结果:', analysis);
-
-        if (analysis) {
-          console.log('Page - 开始更新新日记分析结果:', {
-            id: newDiary.id,
-            analysis: analysis
-          });
-          
-          const { error: updateError, data: updateData } = await supabase
-            .from('diaries')
-            .update({ analysis })
-            .eq('id', newDiary.id)
-            .select();  // 添加 select() 来获取更新结果
-
-          if (updateError) {
-            console.error('Page - 更新新日记分析失败:', {
-              error: updateError,
-              details: updateError.details,
-              message: updateError.message,
-              hint: updateError.hint
-            });
-            throw updateError;
-          }
-          
-          console.log('Page - 新日记分析更新成功:', updateData);
-        }
+        if (insertError) throw insertError;
+        diaryId = newDiary.id;
       }
 
-      setAnalyzingId(null)
-      setOpen(false)
-      setEditingDiary(null)
-      await fetchDiaries()
+      // 2. 保存成功，立即关闭编辑器，刷新列表
+      setOpen(false);
+      setEditingDiary(null);
+      await fetchDiaries();
       toast({
         title: editingDiary ? "更新成功" : "保存成功",
         description: editingDiary ? "日记已更新" : "日记已保存",
-      })
+      });
+
+      // 3. 启动异步 AI 分析，不等待它完成
+      const analyzeAndUpdate = async () => {
+        try {
+          setAnalyzingId(diaryId);
+          const analysis = await analyzeDiary(content);
+          
+          if (analysis) {
+            const { error: analysisError } = await supabase
+              .from('diaries')
+              .update({ analysis })
+              .eq('id', diaryId);
+
+            if (analysisError) {
+              console.error('AI 分析更新失败:', analysisError);
+              toast({
+                title: "AI 分析失败",
+                description: "分析结果未能保存，请稍后在日记列表中重试",
+                variant: "destructive",
+              });
+            } else {
+              await fetchDiaries();  // 更新列表显示分析结果
+            }
+          }
+        } catch (error) {
+          console.error('AI 分析失败:', error);
+        } finally {
+          setAnalyzingId(null);
+        }
+      };
+
+      // 启动异步分析但不等待
+      analyzeAndUpdate();
+
     } catch (error) {
-      console.error('Page - 处理失败:', error)
-      setAnalyzingId(null)
+      console.error('保存日记失败:', error);
       toast({
         title: "保存失败",
         description: "请稍后重试",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handlePreview = (diary: Database['public']['tables']['diaries']['Row']) => {
     setSelectedDiary(diary)
