@@ -20,7 +20,7 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -28,7 +28,33 @@ export default function RegisterPage() {
         },
       })
 
-      if (error) throw error
+      if (authError) throw authError
+
+      if (authData.user) {
+        let username = email.split('@')[0]
+          .replace(/[^a-zA-Z0-9_-]/g, '') // 移除不允许的字符
+          .toLowerCase()
+        
+        // 确保用户名符合长度要求
+        if (username.length < 2) {
+          username = username + Math.random().toString(36).slice(2, 4)
+        } else if (username.length > 30) {
+          username = username.slice(0, 30)
+        }
+
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert([
+            {
+              id: authData.user.id,
+              username,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }
+          ])
+
+        if (profileError) throw profileError
+      }
 
       toast({
         title: "注册成功",
