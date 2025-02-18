@@ -150,6 +150,9 @@ export default function ProfilePage() {
         title: "更新成功",
         description: "你的个人资料已更新",
       })
+
+      // 更新成功后跳转到主页
+      router.push("/")
     } catch (error: any) {
       console.error("更新失败:", error)
       toast({
