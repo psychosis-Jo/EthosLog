@@ -12,7 +12,15 @@ const nextConfig: NextConfig = {
   },
   // 添加这个配置来处理上传的图片
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('https://', '')].filter(Boolean) as string[],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'dstzyldxgvxtgvafmadl.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/sign/**',
+      },
+    ],
   },
   eslint: {
     ignoreDuringBuilds: true,  // 在构建时忽略 ESLint 错误

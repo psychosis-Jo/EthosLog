@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
+import { AvatarUpload } from "@/components/ui/avatar-upload"
 
 interface Profile {
   username: string | null
@@ -24,6 +25,7 @@ export default function ProfilePage() {
     avatar_url: null,
   })
   const [pageLoading, setPageLoading] = useState(true)
+  const [isUploading, setIsUploading] = useState(false)
 
   useEffect(() => {
     if (authLoading) return
@@ -83,6 +85,16 @@ export default function ProfilePage() {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (isUploading) {
+      toast({
+        title: "请等待",
+        description: "头像正在上传中",
+        variant: "destructive",
+      })
+      return
+    }
+
     setLoading(true)
 
     if (!profile.username) {
@@ -151,8 +163,10 @@ export default function ProfilePage() {
         description: "你的个人资料已更新",
       })
 
-      // 更新成功后跳转到主页
-      router.push("/")
+      // 确保在更新成功后立即跳转
+      setTimeout(() => {
+        router.push("/")
+      }, 0)
     } catch (error: any) {
       console.error("更新失败:", error)
       toast({
@@ -175,7 +189,15 @@ export default function ProfilePage() {
           </p>
         </CardHeader>
         <form onSubmit={handleUpdateProfile}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
+            <AvatarUpload
+              url={profile.avatar_url}
+              onUpload={(url) => {
+                setProfile({ ...profile, avatar_url: url })
+                setIsUploading(false)
+              }}
+              onUploading={(uploading) => setIsUploading(uploading)}
+            />
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 邮箱
