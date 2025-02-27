@@ -26,6 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { analyzeDiary } from "@/lib/ai"
+import { UserNav } from "@/components/user-nav"
 
 const sanitizeSchema = {
   ...defaultSchema,
@@ -226,8 +227,9 @@ export default function HomePage() {
   return (
     <main className="min-h-screen p-4">
       <Card className="mb-4">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="select-none">ETHOSLOG</CardTitle>
+          <UserNav />
         </CardHeader>
       </Card>
 
