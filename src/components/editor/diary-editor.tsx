@@ -1,105 +1,85 @@
 "use client"
 
-import React, { useState } from 'react'
-import MDEditor, { commands } from '@uiw/react-md-editor'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Upload } from 'lucide-react'
+import React from 'react'
+import MDEditor from '@uiw/react-md-editor'
+import { Button } from "@/components/ui/button"
+import { Check, ArrowLeft } from 'lucide-react'
+import { cn } from "@/lib/utils"
 
 interface DiaryEditorProps {
   initialTitle?: string
   initialContent?: string
-  onSubmit: (title: string, content: string) => Promise<void>
+  onSubmit: (title: string, content: string) => void
   onCancel: () => void
 }
 
-export function DiaryEditor({ initialTitle = '', initialContent = '', onSubmit, onCancel }: DiaryEditorProps) {
-  const [title, setTitle] = useState(initialTitle)
-  const [content, setContent] = useState(initialContent)
-  const [uploading, setUploading] = useState(false)
-
-  const handleImageUpload = async (file: File) => {
-    try {
-      setUploading(true)
-      const filename = `${Date.now()}-${file.name}`
-
-      const response = await fetch(`/api/upload?filename=${filename}`, {
-        method: 'POST',
-        body: file,
-      })
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Upload failed');
-      }
-
-      const data = await response.json()
-      const imageUrl = `${window.location.origin}${data.url}`
-      
-      const imageMarkdown = `![${file.name}](${imageUrl})\n`
-      setContent((prev: string) => prev + imageMarkdown)
-    } catch (error) {
-      console.error('Upload error:', error)
-      alert('上传失败：' + (error as Error).message)
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  const imageCommand = {
-    name: 'image',
-    keyCommand: 'image',
-    buttonProps: { 'aria-label': 'Insert image' },
-    icon: <Upload className="w-4 h-4" />,
-    execute: async () => {
-      const input = document.createElement('input')
-      input.type = 'file'
-      input.accept = 'image/*'
-      input.onchange = async (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0]
-        if (file) {
-          await handleImageUpload(file)
-        }
-      }
-      input.click()
-    },
+export function DiaryEditor({ initialContent = '', onSubmit, onCancel }: DiaryEditorProps) {
+  const defaultContent = initialContent || '# 100天重新出发 | 复盘日课: 33天/100天\n\n'
+  const [content, setContent] = React.useState(defaultContent)
+  const extractTitle = (content: string) => {
+    const lines = content.split('\n')
+    return lines[0]?.replace(/^#+\s*/, '') || '无标题'
   }
 
   const handleSubmit = () => {
-    if (!title.trim()) {
-      return
-    }
+    const title = extractTitle(content)
     onSubmit(title, content)
   }
 
   return (
-    <div className="flex flex-col gap-4" data-color-mode="light">
-      <Input
-        placeholder="日记标题"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="text-lg"
+    <div className="fixed inset-0">
+      {/* 浮动按钮 */}
+      <div className="fixed bottom-6 right-6 flex gap-3 z-10">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={onCancel} 
+          className="w-12 h-12 rounded-full bg-background/80 backdrop-blur hover:bg-background/90"
+        >
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
+        <Button 
+          size="icon"
+          onClick={handleSubmit} 
+          className="w-12 h-12 rounded-full bg-primary/80 backdrop-blur hover:bg-primary/90"
+        >
+          <Check className="h-6 w-6" />
+        </Button>
+      </div>
+
+      {/* 编辑器区域 */}
+      <MDEditor
+        value={content}
+        onChange={value => setContent(value || '')}
+        preview="edit"
+        className={cn(
+          "!h-screen",
+          // 移除所有边框和阴影
+          "[&_.w-md-editor]:border-0",
+          "[&_.w-md-editor]:shadow-none",
+          // 调整工具栏样式
+          "[&_.w-md-editor-toolbar]:border-b [&_.w-md-editor-toolbar]:border-border",
+          "[&_.w-md-editor-toolbar]:bg-background/80 [&_.w-md-editor-toolbar]:backdrop-blur",
+          "[&_.w-md-editor-toolbar]:px-4",
+          "[&_.w-md-editor-toolbar]:sticky [&_.w-md-editor-toolbar]:top-0",
+          // 调整编辑区域样式
+          "[&_.w-md-editor-content]:h-[calc(100vh-2.5rem)]",
+          "[&_.w-md-editor-text-pre>textarea]:px-4",
+          "[&_.w-md-editor-text-pre>textarea]:py-4",
+          "[&_.w-md-editor-text]:bg-background",
+          "[&_.w-md-editor-text-pre]:bg-background",
+          "[&_.w-md-editor-text-pre>textarea]:bg-background",
+          // 预览区域样式
+          "[&_.wmde-markdown-var]:px-4",
+          "[&_.wmde-markdown-var]:py-4",
+          "[&_.w-md-editor-preview]:bg-background",
+          // 确保只有一个滚动条
+          "[&_.w-md-editor]:!overflow-hidden",
+          "[&_.w-md-editor-content]:!overflow-auto",
+          // 底部留出空间给按钮
+          "[&_.w-md-editor-content]:pb-24"
+        )}
       />
-      <div className="min-h-[400px] border rounded-md">
-        <MDEditor
-          value={content}
-          onChange={(value) => setContent(value || '')}
-          preview="edit"
-          height={400}
-          commands={[
-            ...commands.getCommands(),
-            imageCommand,
-          ]}
-        />
-      </div>
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onCancel} disabled={uploading}>
-          取消
-        </Button>
-        <Button onClick={handleSubmit} disabled={uploading}>
-          {uploading ? '上传中...' : '提交'}
-        </Button>
-      </div>
     </div>
   )
 } 

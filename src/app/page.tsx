@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { analyzeDiary } from "@/lib/ai"
 import { UserNav } from "@/components/user-nav"
+import Link from 'next/link'
 
 const sanitizeSchema = {
   ...defaultSchema,
@@ -89,8 +90,7 @@ export default function HomePage() {
   }, [user, loading, router, fetchDiaries])
 
   const handleEdit = (diary: Database['public']['tables']['diaries']['Row']) => {
-    setEditingDiary(diary)
-    setOpen(true)
+    router.push(`/diary/edit/${diary.id}`);
   }
 
   const handleSubmit = async (title: string, content: string) => {
@@ -288,33 +288,14 @@ export default function HomePage() {
         ))
       )}
 
-      <Dialog open={open} onOpenChange={(isOpen) => {
-        setOpen(isOpen)
-        if (!isOpen) setEditingDiary(null)
-      }}>
-        <DialogTrigger asChild>
-          <Button 
-            className="fixed bottom-4 right-4 rounded-full p-0 w-14 h-14 shadow-lg hover:shadow-xl transition-shadow"
-            size="icon"
-          >
-            <Plus className="h-6 w-6" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>{editingDiary ? '编辑日记' : '新建日记'}</DialogTitle>
-          </DialogHeader>
-          <DiaryEditor 
-            initialTitle={editingDiary?.title}
-            initialContent={editingDiary?.content}
-            onSubmit={handleSubmit}
-            onCancel={() => {
-              setOpen(false)
-              setEditingDiary(null)
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      <Link href="/diary/edit">
+        <Button 
+          className="fixed bottom-4 right-4 rounded-full p-0 w-14 h-14 shadow-lg hover:shadow-xl transition-shadow"
+          size="icon"
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
+      </Link>
 
       {/* 预览弹窗 */}
       <Dialog open={!!selectedDiary} onOpenChange={() => setSelectedDiary(null)}>

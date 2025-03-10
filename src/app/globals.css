@@ -76,3 +76,52 @@
   max-width: 100%;
   height: auto;
 } 
+
+/* 添加prose类样式支持富文本编辑器 */
+.prose {
+  @apply text-foreground;
+}
+
+.prose h1 {
+  @apply text-3xl font-bold mb-4 mt-6;
+}
+
+.prose h2 {
+  @apply text-2xl font-bold mb-3 mt-5;
+}
+
+.prose h3 {
+  @apply text-xl font-bold mb-2 mt-4;
+}
+
+.prose p {
+  @apply mb-4;
+}
+
+.prose ul, .prose ol {
+  @apply pl-5 mb-4;
+}
+
+.prose ul {
+  @apply list-disc;
+}
+
+.prose ol {
+  @apply list-decimal;
+}
+
+.prose li {
+  @apply mb-1;
+}
+
+.prose blockquote {
+  @apply pl-4 border-l-4 border-gray-300 italic;
+}
+
+.prose a {
+  @apply text-foreground underline hover:opacity-80 transition-opacity;
+}
+
+.prose img {
+  @apply max-w-full my-4 rounded-md;
+} 
