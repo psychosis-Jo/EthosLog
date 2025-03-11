@@ -18,23 +18,49 @@ interface DiaryEditorProps {
 }
 
 export function DiaryEditor({ initialContent = '', onSubmit, onCancel }: DiaryEditorProps) {
-  const defaultContent = initialContent || '<h1>100天重新出发 | 复盘日课: 33天/100天</h1><p></p>'
+  const defaultContent = initialContent || '<h1>100天重新出发 | 复盘日课: 33天/100天</h1><p>开始写作...</p>'
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3]
+        }
+      }),
       Link.configure({
         openOnClick: false,
       }),
       Image,
       Placeholder.configure({
-        placeholder: '开始写作...',
+        placeholder: ({ node }) => {
+          if (node.type.name === 'heading' && node.attrs.level === 1) {
+            return '标题'
+          }
+          return '开始写作...'
+        },
       }),
     ],
     content: defaultContent,
     editorProps: {
       attributes: {
-        class: 'prose prose-lg max-w-none focus:outline-none px-4 py-4',
+        class: cn(
+          'prose prose-sm max-w-none focus:outline-none px-4 py-4',
+          // 调整行间距
+          'prose-p:my-1 prose-headings:my-2',
+          // 设置正文字号为 15px
+          'prose-p:text-[15px] prose-p:leading-relaxed',
+          // 调整标题样式
+          'prose-h1:text-2xl prose-h1:font-semibold prose-h1:leading-normal',
+          'prose-h2:text-xl prose-h2:font-semibold prose-h2:leading-normal',
+          'prose-h3:text-lg prose-h3:font-semibold prose-h3:leading-normal',
+          // 调整列表样式
+          'prose-ul:my-1 prose-ol:my-1',
+          'prose-li:my-0.5',
+          // 调整引用样式
+          'prose-blockquote:my-2',
+          // 调整代码块样式
+          'prose-pre:my-2',
+        ),
       },
     },
   })
