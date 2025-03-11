@@ -29,8 +29,9 @@ import {
 import { Check, ArrowLeft, Plus, Type, Tag, Bold, Italic, Strikethrough, Underline as UnderlineIcon, 
   List, ListOrdered, ListTodo, Quote, Image as ImageIcon, Table as TableIcon, Code, 
   Heading1, Heading2, Heading3, AlignLeft, AlignCenter, AlignRight, AlignJustify,
-  Highlighter, SeparatorHorizontal, Paperclip, Palette } from 'lucide-react'
+  Highlighter, SeparatorHorizontal, Paperclip, Palette, IndentIcon, Outdent } from 'lucide-react'
 import { cn } from "@/lib/utils"
+import { Indent } from './extensions/indent'
 
 interface DiaryEditorProps {
   initialTitle?: string
@@ -71,6 +72,11 @@ export function DiaryEditor({ initialContent = '', onSubmit, onCancel }: DiaryEd
       TextStyle,
       Color,
       HorizontalRule,
+      Indent.configure({
+        types: ['paragraph', 'heading', 'listItem', 'taskItem'],
+        minIndent: 0,
+        maxIndent: 7,
+      }),
       Placeholder.configure({
         placeholder: ({ node }) => {
           if (node.type.name === 'heading' && node.attrs.level === 1) {
@@ -261,6 +267,14 @@ export function DiaryEditor({ initialContent = '', onSubmit, onCancel }: DiaryEd
                   <Palette className="h-4 w-4 mr-2" />
                   <span>文字颜色</span>
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().indent().run()}>
+                  <IndentIcon className="h-4 w-4 mr-2" />
+                  <span>增加缩进</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().outdent().run()}>
+                  <Outdent className="h-4 w-4 mr-2" />
+                  <span>减少缩进</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -323,6 +337,14 @@ export function DiaryEditor({ initialContent = '', onSubmit, onCancel }: DiaryEd
             </Button>
             <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().setTextAlign('right').run()}>
               <AlignRight className="h-4 w-4" />
+            </Button>
+
+            {/* 缩进按钮 */}
+            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().indent().run()}>
+              <IndentIcon className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().outdent().run()}>
+              <Outdent className="h-4 w-4" />
             </Button>
 
             {/* 标签按钮 */}
