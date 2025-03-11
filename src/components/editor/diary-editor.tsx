@@ -126,9 +126,9 @@ export function DiaryEditor({ initialContent = '', onSubmit, onCancel }: DiaryEd
   return (
     <div className="fixed inset-0 bg-background">
       {/* 工具栏 */}
-      <div className="border-b bg-background/80 backdrop-blur sticky top-0 z-10">
+      <div className="bg-background/80 backdrop-blur sticky top-0 z-10">
         <div className="flex items-center gap-2 p-2">
-          <div className="flex items-center gap-1 border-r pr-2">
+          <div className="flex items-center gap-1 pr-2">
             <Button
               variant="ghost"
               size="sm"
@@ -139,133 +139,197 @@ export function DiaryEditor({ initialContent = '', onSubmit, onCancel }: DiaryEd
             </Button>
           </div>
 
-          {/* 插入按钮 */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => {
-                const url = window.prompt('输入图片地址:')
-                if (url) editor.chain().focus().setImage({ src: url }).run()
-              }}>
-                <ImageIcon className="h-4 w-4 mr-2" />
-                <span>图片</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                const url = window.prompt('输入附件地址:')
-                if (url) editor.chain().focus().setLink({ href: url }).run()
-              }}>
-                <Paperclip className="h-4 w-4 mr-2" />
-                <span>附件</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
-                <TableIcon className="h-4 w-4 mr-2" />
-                <span>表格</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHighlight().run()}>
-                <Highlighter className="h-4 w-4 mr-2" />
-                <span>高亮块</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleBlockquote().run()}>
-                <Quote className="h-4 w-4 mr-2" />
-                <span>引用</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().setHorizontalRule().run()}>
-                <SeparatorHorizontal className="h-4 w-4 mr-2" />
-                <span>分割线</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleCodeBlock().run()}>
-                <Code className="h-4 w-4 mr-2" />
-                <span>代码块</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* 移动端下拉菜单 */}
+          <div className="sm:hidden flex items-center gap-2">
+            {/* 插入按钮 */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => {
+                  const url = window.prompt('输入图片地址:')
+                  if (url) editor.chain().focus().setImage({ src: url }).run()
+                }}>
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  <span>图片</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  const url = window.prompt('输入附件地址:')
+                  if (url) editor.chain().focus().setLink({ href: url }).run()
+                }}>
+                  <Paperclip className="h-4 w-4 mr-2" />
+                  <span>附件</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
+                  <TableIcon className="h-4 w-4 mr-2" />
+                  <span>表格</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().toggleHighlight().run()}>
+                  <Highlighter className="h-4 w-4 mr-2" />
+                  <span>高亮块</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().toggleBlockquote().run()}>
+                  <Quote className="h-4 w-4 mr-2" />
+                  <span>引用</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().setHorizontalRule().run()}>
+                  <SeparatorHorizontal className="h-4 w-4 mr-2" />
+                  <span>分割线</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().toggleCodeBlock().run()}>
+                  <Code className="h-4 w-4 mr-2" />
+                  <span>代码块</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          {/* 文本样式按钮 */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1">
-                <Type className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
-                <Heading1 className="h-4 w-4 mr-2" />
-                <span>标题 1</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
-                <Heading2 className="h-4 w-4 mr-2" />
-                <span>标题 2</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
-                <Heading3 className="h-4 w-4 mr-2" />
-                <span>标题 3</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleBold().run()}>
-                <Bold className="h-4 w-4 mr-2" />
-                <span>加粗</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleItalic().run()}>
-                <Italic className="h-4 w-4 mr-2" />
-                <span>斜体</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleUnderline().run()}>
-                <UnderlineIcon className="h-4 w-4 mr-2" />
-                <span>下划线</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleStrike().run()}>
-                <Strikethrough className="h-4 w-4 mr-2" />
-                <span>删除线</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleBulletList().run()}>
-                <List className="h-4 w-4 mr-2" />
-                <span>无序列表</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleOrderedList().run()}>
-                <ListOrdered className="h-4 w-4 mr-2" />
-                <span>有序列表</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleTaskList().run()}>
-                <ListTodo className="h-4 w-4 mr-2" />
-                <span>任务列表</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('left').run()}>
-                <AlignLeft className="h-4 w-4 mr-2" />
-                <span>左对齐</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('center').run()}>
-                <AlignCenter className="h-4 w-4 mr-2" />
-                <span>居中对齐</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('right').run()}>
-                <AlignRight className="h-4 w-4 mr-2" />
-                <span>右对齐</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('justify').run()}>
-                <AlignJustify className="h-4 w-4 mr-2" />
-                <span>两端对齐</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => {
-                const color = window.prompt('输入颜色值 (例如: #000000):')
-                if (color) editor.chain().focus().setColor(color).run()
-              }}>
-                <Palette className="h-4 w-4 mr-2" />
-                <span>文字颜色</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            {/* 文本样式按钮 */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1">
+                  <Type className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
+                  <Heading1 className="h-4 w-4 mr-2" />
+                  <span>标题 1</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+                  <Heading2 className="h-4 w-4 mr-2" />
+                  <span>标题 2</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
+                  <Heading3 className="h-4 w-4 mr-2" />
+                  <span>标题 3</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => editor.chain().focus().toggleBold().run()}>
+                  <Bold className="h-4 w-4 mr-2" />
+                  <span>加粗</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().toggleItalic().run()}>
+                  <Italic className="h-4 w-4 mr-2" />
+                  <span>斜体</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().toggleUnderline().run()}>
+                  <UnderlineIcon className="h-4 w-4 mr-2" />
+                  <span>下划线</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().toggleStrike().run()}>
+                  <Strikethrough className="h-4 w-4 mr-2" />
+                  <span>删除线</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => editor.chain().focus().toggleBulletList().run()}>
+                  <List className="h-4 w-4 mr-2" />
+                  <span>无序列表</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().toggleOrderedList().run()}>
+                  <ListOrdered className="h-4 w-4 mr-2" />
+                  <span>有序列表</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().toggleTaskList().run()}>
+                  <ListTodo className="h-4 w-4 mr-2" />
+                  <span>任务列表</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('left').run()}>
+                  <AlignLeft className="h-4 w-4 mr-2" />
+                  <span>左对齐</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('center').run()}>
+                  <AlignCenter className="h-4 w-4 mr-2" />
+                  <span>居中对齐</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('right').run()}>
+                  <AlignRight className="h-4 w-4 mr-2" />
+                  <span>右对齐</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('justify').run()}>
+                  <AlignJustify className="h-4 w-4 mr-2" />
+                  <span>两端对齐</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => {
+                  const color = window.prompt('输入颜色值 (例如: #000000):')
+                  if (color) editor.chain().focus().setColor(color).run()
+                }}>
+                  <Palette className="h-4 w-4 mr-2" />
+                  <span>文字颜色</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          {/* 标签按钮 */}
-          <Button variant="ghost" size="sm" className="gap-1">
-            <Tag className="h-4 w-4" />
-          </Button>
+            {/* 标签按钮 */}
+            <Button variant="ghost" size="sm" className="gap-1">
+              <Tag className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* 桌面端工具栏 */}
+          <div className="hidden sm:flex items-center gap-2">
+            {/* 插入多媒体按钮 */}
+            <Button variant="ghost" size="sm" onClick={() => {
+              const url = window.prompt('输入图片地址:')
+              if (url) editor.chain().focus().setImage({ src: url }).run()
+            }}>
+              <ImageIcon className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => {
+              const url = window.prompt('输入附件地址:')
+              if (url) editor.chain().focus().setLink({ href: url }).run()
+            }}>
+              <Paperclip className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
+              <TableIcon className="h-4 w-4" />
+            </Button>
+
+            {/* 文本格式按钮 */}
+            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleBold().run()}>
+              <Bold className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleItalic().run()}>
+              <Italic className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleUnderline().run()}>
+              <UnderlineIcon className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleStrike().run()}>
+              <Strikethrough className="h-4 w-4" />
+            </Button>
+
+            {/* 列表按钮 */}
+            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleBulletList().run()}>
+              <List className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleOrderedList().run()}>
+              <ListOrdered className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleTaskList().run()}>
+              <ListTodo className="h-4 w-4" />
+            </Button>
+
+            {/* 对齐方式按钮 */}
+            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().setTextAlign('left').run()}>
+              <AlignLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().setTextAlign('center').run()}>
+              <AlignCenter className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().setTextAlign('right').run()}>
+              <AlignRight className="h-4 w-4" />
+            </Button>
+
+            {/* 标签按钮 */}
+            <Button variant="ghost" size="sm">
+              <Tag className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
