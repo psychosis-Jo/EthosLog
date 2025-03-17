@@ -1,121 +1,126 @@
 "use client"
 
-import React, { Suspense } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from "@/lib/auth-context"
-import { supabase } from "@/lib/supabase"
-import { useToast } from "@/components/ui/use-toast"
-import { DiaryEditor } from "@/components/editor/diary-editor"
-import { useEffect, useState } from "react"
+import React, { useState, useEffect } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/lib/auth-context'
+import { DiaryEditor } from '@/components/editor/diary-editor'
+import { useToast } from '@/components/ui/use-toast'
+import { analyzeDiary } from '@/lib/ai'
 
-interface PageProps {
-  params: Promise<{ id: string }>
-}
-
-function DiaryEditContent({ id }: { id: string }) {
+export default function EditDiaryPage() {
+  const { id } = useParams()
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const { toast } = useToast()
   const [diary, setDiary] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const [loadingDiary, setLoadingDiary] = useState(true)
 
-  // 获取日记数据
   useEffect(() => {
-    const fetchDiary = async () => {
-      if (!user) return;
+    if (!loading && !user) {
+      router.push('/login')
+    }
+  }, [user, loading, router])
 
-      try {
-        const { data, error } = await supabase
-          .from('diaries')
-          .select('*')
-          .eq('id', id)
-          .single();
+  useEffect(() => {
+    async function fetchDiary() {
+      if (!user || !id) return
 
-        if (error) throw error;
-        if (data.user_id !== user.id) {
-          toast({
-            title: "访问被拒绝",
-            description: "您没有权限编辑这篇日记",
-            variant: "destructive",
-          });
-          router.push('/');
-          return;
-        }
+      setLoadingDiary(true)
+      const { data, error } = await supabase
+        .from('diaries')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .single()
 
-        setDiary(data);
-      } catch (error) {
-        console.error('Error fetching diary:', error);
+      if (error) {
+        console.error('Error loading diary:', error)
         toast({
-          title: "加载失败",
-          description: "无法加载日记内容",
-          variant: "destructive",
-        });
-        router.push('/');
-      } finally {
-        setLoading(false);
+          title: '加载内容失败',
+          description: error.message,
+          variant: 'destructive',
+        })
+        router.push('/')
+      } else {
+        setDiary(data)
       }
-    };
+      setLoadingDiary(false)
+    }
 
-    fetchDiary();
-  }, [id, user, router, toast]);
+    fetchDiary()
+  }, [id, user, toast, router])
 
   const handleSubmit = async (title: string, content: string) => {
-    if (!user) return;
+    if (!user || !diary) return
 
     try {
-      const { error: updateError } = await supabase
+      // 更新日记
+      const { error } = await supabase
         .from('diaries')
-        .update({ 
-          title, 
+        .update({
+          title,
           content,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', id);
+        .eq('id', diary.id)
 
-      if (updateError) throw updateError;
-
+      if (error) throw error
+      
       toast({
-        title: "更新成功",
-        description: "日记已更新",
-      });
+        title: '内容已更新',
+        description: '您的内容已成功更新。',
+      })
 
-      router.push('/');
+      // 触发分析
+      try {
+        const analysis = await analyzeDiary(content)
+        
+        if (analysis) {
+          const { error } = await supabase
+            .from('diaries')
+            .update({
+              analysis,
+            })
+            .eq('id', diary.id)
+
+          if (error) throw error
+        }
+      } catch (error) {
+        console.error('Error analyzing diary:', error)
+        // 分析失败不影响保存成功
+      }
+      
+      // 跳转到详情页
+      router.push(`/diary/${diary.id}`)
     } catch (error) {
-      console.error('Error updating diary:', error);
+      console.error('Error saving diary:', error)
       toast({
-        title: "保存失败",
-        description: "请稍后重试",
-        variant: "destructive",
-      });
+        title: '保存失败',
+        description: error instanceof Error ? error.message : '发生了未知错误',
+        variant: 'destructive',
+      })
     }
   }
 
-  const handleCancel = () => {
-    router.push('/');
+  if (loading || !user) {
+    return <div className="container mx-auto p-4 text-center">载入中...</div>
   }
 
-  if (loading) {
-    return <div className="container mx-auto p-4">加载中...</div>;
+  if (loadingDiary) {
+    return <div className="container mx-auto p-4 text-center">载入内容中...</div>
+  }
+
+  if (!diary) {
+    return <div className="container mx-auto p-4 text-center">内容不存在或已被删除</div>
   }
 
   return (
     <DiaryEditor
-      initialTitle={diary?.title}
-      initialContent={diary?.content}
+      initialTitle={diary.title}
+      initialContent={diary.content}
       onSubmit={handleSubmit}
-      onCancel={handleCancel}
+      onCancel={() => router.push(`/diary/${diary.id}`)}
     />
-  )
-}
-
-export default function DiaryEditPage({ params }: PageProps) {
-  const id = React.use(params).id;
-
-  return (
-    <main className="container mx-auto p-4 min-h-screen">
-      <Suspense fallback={<div>加载中...</div>}>
-        <DiaryEditContent id={id} />
-      </Suspense>
-    </main>
   )
 } 

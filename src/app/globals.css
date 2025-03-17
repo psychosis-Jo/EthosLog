@@ -107,21 +107,48 @@
 }
 
 .prose ol {
-  @apply list-decimal;
+  list-style: none;
+  counter-reset: item;
+  padding-left: 1.6em;
 }
 
-.prose li {
-  @apply mb-1;
+.prose ol li {
+  counter-increment: item;
+  display: block;
 }
 
-.prose blockquote {
-  @apply pl-4 border-l-4 border-gray-300 italic;
+.prose ol li:before {
+  content: counters(item, ".") ". ";
+  position: absolute;
+  margin-left: -2.5em;
+  padding-right: 0.5em;
 }
 
-.prose a {
-  @apply text-foreground underline hover:opacity-80 transition-opacity;
+.prose ol ol {
+  counter-reset: item;
+  margin-left: 0;
 }
 
-.prose img {
-  @apply max-w-full my-4 rounded-md;
+.prose ol > li {
+  counter-increment: list-0;
+}
+
+.prose ol ol > li {
+  counter-increment: list-1;
+}
+
+.prose ol ol ol > li {
+  counter-increment: list-2;
+}
+
+.prose ol > li::marker {
+  content: counter(list-0) ".";
+}
+
+.prose ol ol > li::marker {
+  content: counter(list-1) ".";
+}
+
+.prose ol ol ol > li::marker {
+  content: counter(list-2) ".";
 } 
