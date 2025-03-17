@@ -427,13 +427,13 @@ export default function HomePage() {
                         {new Date(diary.created_at).toLocaleDateString('zh-CN')}
                       </span>
                       <div className="card-actions">
-                        <button 
+                        <Link 
+                          href={`/diary/edit/${diary.id}`}
                           className="btn-icon" 
                           aria-label="编辑"
-                          onClick={() => handleEdit(diary)}
                         >
                           <Pencil size={16} />
-                        </button>
+                        </Link>
                         <button 
                           className="btn-icon" 
                           aria-label="删除"
