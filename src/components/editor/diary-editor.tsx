@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
@@ -29,7 +29,7 @@ import {
 import { Check, ArrowLeft, Plus, Type, Tag, Bold, Italic, Strikethrough, Underline as UnderlineIcon, 
   List, ListOrdered, ListTodo, Quote, Image as ImageIcon, Table as TableIcon, Code, 
   Heading1, Heading2, Heading3, AlignLeft, AlignCenter, AlignRight, AlignJustify,
-  Highlighter, SeparatorHorizontal, Paperclip, Palette, IndentIcon, Outdent } from 'lucide-react'
+  Highlighter, SeparatorHorizontal, Paperclip, Palette, IndentIcon, Outdent, Link as LinkIcon } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { Indent } from './extensions/indent'
 
@@ -40,8 +40,22 @@ interface DiaryEditorProps {
   onCancel: () => void
 }
 
-export function DiaryEditor({ initialContent = '', onSubmit, onCancel }: DiaryEditorProps) {
-  const defaultContent = initialContent || '<h1>100天重新出发 | 复盘日课: 33天/100天</h1><p>开始写作...</p>'
+export function DiaryEditor({ initialTitle = '', initialContent = '', onSubmit, onCancel }: DiaryEditorProps) {
+  const [title, setTitle] = useState(initialTitle || '')
+  const [tags, setTags] = useState<string[]>([])
+  const [tagInput, setTagInput] = useState('')
+  
+  // 从内容中提取标签
+  React.useEffect(() => {
+    if (initialContent) {
+      const matches = initialContent.match(/#[^\s#<>]+/g) || [];
+      if (matches.length > 0) {
+        setTags(matches.map(tag => tag.substring(1))); // 移除#符号
+      }
+    }
+  }, [initialContent]);
+
+  const defaultContent = initialContent || ''
 
   const editor = useEditor({
     extensions: [
@@ -106,269 +120,215 @@ export function DiaryEditor({ initialContent = '', onSubmit, onCancel }: DiaryEd
           'prose-blockquote:my-2',
           // 调整代码块样式
           'prose-pre:my-2',
+          'editor-content'
         ),
       },
     },
   })
 
-  const extractTitle = (content: string) => {
-    const div = document.createElement('div')
-    div.innerHTML = content
-    const h1 = div.querySelector('h1')
-    return h1?.textContent || '无标题'
+  const addTag = (text: string) => {
+    if (!text) return;
+    
+    // 如果标签不以#开头，添加#
+    const tagText = text.startsWith('#') ? text.substring(1) : text;
+    
+    // 检查标签是否已存在
+    if (!tags.includes(tagText)) {
+      setTags([...tags, tagText]);
+    }
+    
+    setTagInput('');
+  }
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  }
+
+  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag(tagInput);
+    }
+  }
+
+  // 添加一个函数来处理点击添加标签
+  const handleAddTagClick = () => {
+    if (tagInput.trim()) {
+      addTag(tagInput);
+    }
   }
 
   const handleSubmit = () => {
-    if (!editor) return
-    const content = editor.getHTML()
-    const title = extractTitle(content)
-    onSubmit(title, content)
+    if (!editor) return;
+    
+    // 获取内容
+    let content = editor.getHTML();
+    
+    // 标签处理 - 在内容末尾添加标签
+    if (tags.length > 0) {
+      // 确保内容末尾有段落标签
+      if (!content.endsWith('</p>')) {
+        content += '<p></p>';
+      }
+      
+      // 添加标签到内容末尾
+      tags.forEach(tag => {
+        content = content.replace('</p>', ` #${tag}</p>`);
+      });
+    }
+    
+    onSubmit(title || '无标题', content);
   }
 
   if (!editor) {
-    return null
+    return null;
   }
 
   return (
-    <div className="fixed inset-0 bg-background">
-      {/* 工具栏 */}
-      <div className="bg-background/80 backdrop-blur sticky top-0 z-10">
-        <div className="flex items-center gap-2 p-2">
-          <div className="flex items-center gap-1 pr-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-primary bg-primary/10 hover:bg-primary/20"
-              onClick={onCancel}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </div>
+    <div className="app">
+      <header className="header">
+        <div className="header__menu">
+          <button 
+            className="btn-icon" 
+            aria-label="返回"
+            onClick={onCancel}
+          >
+            <ArrowLeft className="icon" />
+          </button>
+        </div>
+        <div className="header__logo">ETHOSLOG</div>
+        <div className="header__actions">
+          <button 
+            className="btn btn-primary"
+            onClick={handleSubmit}
+          >
+            保存
+          </button>
+        </div>
+      </header>
 
-          {/* 移动端下拉菜单 */}
-          <div className="sm:hidden flex items-center gap-2">
-            {/* 插入按钮 */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => {
+      <div className="content-wrapper">
+        <main className="main">
+          <section className="content-create">
+            <div className="integrated-editor">
+              <div className="editor-toolbar">
+                <button className="toolbar-btn" title="加粗" onClick={() => editor.chain().focus().toggleBold().run()}>
+                  <Bold className="icon bold-icon" />
+                </button>
+                <button className="toolbar-btn" title="斜体" onClick={() => editor.chain().focus().toggleItalic().run()}>
+                  <Italic className="icon" />
+                </button>
+                <button className="toolbar-btn" title="下划线" onClick={() => editor.chain().focus().toggleUnderline().run()}>
+                  <UnderlineIcon className="icon underline-icon" />
+                </button>
+                <button className="toolbar-btn" title="删除线" onClick={() => editor.chain().focus().toggleStrike().run()}>
+                  <Strikethrough className="icon strikethrough-icon" />
+                </button>
+                <button className="toolbar-btn" title="标题1" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
+                  <Heading1 className="icon" />
+                </button>
+                <button className="toolbar-btn" title="标题2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+                  <Heading2 className="icon" />
+                </button>
+                <button className="toolbar-btn" title="无序列表" onClick={() => editor.chain().focus().toggleBulletList().run()}>
+                  <List className="icon" />
+                </button>
+                <button className="toolbar-btn" title="有序列表" onClick={() => editor.chain().focus().toggleOrderedList().run()}>
+                  <ListOrdered className="icon" />
+                </button>
+                <button className="toolbar-btn" title="任务列表" onClick={() => editor.chain().focus().toggleTaskList().run()}>
+                  <ListTodo className="icon" />
+                </button>
+                <button className="toolbar-btn" title="引用" onClick={() => editor.chain().focus().toggleBlockquote().run()}>
+                  <Quote className="icon quote-icon" />
+                </button>
+                <button className="toolbar-btn" title="链接" onClick={() => {
+                  const url = window.prompt('输入链接地址:')
+                  if (url) editor.chain().focus().setLink({ href: url }).run()
+                }}>
+                  <LinkIcon className="icon link-icon" />
+                </button>
+                <button className="toolbar-btn" title="图片" onClick={() => {
                   const url = window.prompt('输入图片地址:')
                   if (url) editor.chain().focus().setImage({ src: url }).run()
                 }}>
-                  <ImageIcon className="h-4 w-4 mr-2" />
-                  <span>图片</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {
-                  const url = window.prompt('输入附件地址:')
-                  if (url) editor.chain().focus().setLink({ href: url }).run()
-                }}>
-                  <Paperclip className="h-4 w-4 mr-2" />
-                  <span>附件</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
-                  <TableIcon className="h-4 w-4 mr-2" />
-                  <span>表格</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().toggleHighlight().run()}>
-                  <Highlighter className="h-4 w-4 mr-2" />
-                  <span>高亮块</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().toggleBlockquote().run()}>
-                  <Quote className="h-4 w-4 mr-2" />
-                  <span>引用</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().setHorizontalRule().run()}>
-                  <SeparatorHorizontal className="h-4 w-4 mr-2" />
-                  <span>分割线</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().toggleCodeBlock().run()}>
-                  <Code className="h-4 w-4 mr-2" />
-                  <span>代码块</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <ImageIcon className="icon image-icon" />
+                </button>
+                <button className="toolbar-btn" title="表格" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
+                  <TableIcon className="icon table-icon" />
+                </button>
+                <button className="toolbar-btn" title="左对齐" onClick={() => editor.chain().focus().setTextAlign('left').run()}>
+                  <AlignLeft className="icon" />
+                </button>
+                <button className="toolbar-btn" title="居中对齐" onClick={() => editor.chain().focus().setTextAlign('center').run()}>
+                  <AlignCenter className="icon" />
+                </button>
+                <button className="toolbar-btn" title="右对齐" onClick={() => editor.chain().focus().setTextAlign('right').run()}>
+                  <AlignRight className="icon" />
+                </button>
+                <button className="toolbar-btn" title="增加缩进" onClick={() => editor.chain().focus().indent().run()}>
+                  <IndentIcon className="icon" />
+                </button>
+                <button className="toolbar-btn" title="减少缩进" onClick={() => editor.chain().focus().outdent().run()}>
+                  <Outdent className="icon" />
+                </button>
+              </div>
 
-            {/* 文本样式按钮 */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1">
-                  <Type className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
-                  <Heading1 className="h-4 w-4 mr-2" />
-                  <span>标题 1</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
-                  <Heading2 className="h-4 w-4 mr-2" />
-                  <span>标题 2</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
-                  <Heading3 className="h-4 w-4 mr-2" />
-                  <span>标题 3</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => editor.chain().focus().toggleBold().run()}>
-                  <Bold className="h-4 w-4 mr-2" />
-                  <span>加粗</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().toggleItalic().run()}>
-                  <Italic className="h-4 w-4 mr-2" />
-                  <span>斜体</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().toggleUnderline().run()}>
-                  <UnderlineIcon className="h-4 w-4 mr-2" />
-                  <span>下划线</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().toggleStrike().run()}>
-                  <Strikethrough className="h-4 w-4 mr-2" />
-                  <span>删除线</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => editor.chain().focus().toggleBulletList().run()}>
-                  <List className="h-4 w-4 mr-2" />
-                  <span>无序列表</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().toggleOrderedList().run()}>
-                  <ListOrdered className="h-4 w-4 mr-2" />
-                  <span>有序列表</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().toggleTaskList().run()}>
-                  <ListTodo className="h-4 w-4 mr-2" />
-                  <span>任务列表</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('left').run()}>
-                  <AlignLeft className="h-4 w-4 mr-2" />
-                  <span>左对齐</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('center').run()}>
-                  <AlignCenter className="h-4 w-4 mr-2" />
-                  <span>居中对齐</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('right').run()}>
-                  <AlignRight className="h-4 w-4 mr-2" />
-                  <span>右对齐</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('justify').run()}>
-                  <AlignJustify className="h-4 w-4 mr-2" />
-                  <span>两端对齐</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => {
-                  const color = window.prompt('输入颜色值 (例如: #000000):')
-                  if (color) editor.chain().focus().setColor(color).run()
-                }}>
-                  <Palette className="h-4 w-4 mr-2" />
-                  <span>文字颜色</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().indent().run()}>
-                  <IndentIcon className="h-4 w-4 mr-2" />
-                  <span>增加缩进</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editor.chain().focus().outdent().run()}>
-                  <Outdent className="h-4 w-4 mr-2" />
-                  <span>减少缩进</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              <div className="editor-container">
+                <input 
+                  type="text" 
+                  className="editor-title" 
+                  placeholder="输入标题..." 
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+                />
+                <div className="editor-tags">
+                  <div className="tags-container">
+                    {tags.map((tag, index) => (
+                      <span className="tag" key={index}>
+                        #{tag}<span className="tag-remove" onClick={() => removeTag(tag)}>×</span>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="tag-input-container">
+                    <input 
+                      type="text" 
+                      placeholder="添加标签..." 
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={handleTagInputKeyDown}
+                    />
+                    {tagInput.trim() && (
+                      <span 
+                        className="tag-add-btn" 
+                        onClick={handleAddTagClick}
+                      >
+                        ×
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="editor-divider"></div>
+                <div className="editor-content-wrapper">
+                  <EditorContent 
+                    editor={editor} 
+                    className="editor-content-area"
+                  />
+                </div>
+              </div>
+            </div>
 
-            {/* 标签按钮 */}
-            <Button variant="ghost" size="sm" className="gap-1">
-              <Tag className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* 桌面端工具栏 */}
-          <div className="hidden sm:flex items-center gap-2">
-            {/* 插入多媒体按钮 */}
-            <Button variant="ghost" size="sm" onClick={() => {
-              const url = window.prompt('输入图片地址:')
-              if (url) editor.chain().focus().setImage({ src: url }).run()
-            }}>
-              <ImageIcon className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => {
-              const url = window.prompt('输入附件地址:')
-              if (url) editor.chain().focus().setLink({ href: url }).run()
-            }}>
-              <Paperclip className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
-              <TableIcon className="h-4 w-4" />
-            </Button>
-
-            {/* 文本格式按钮 */}
-            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleBold().run()}>
-              <Bold className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleItalic().run()}>
-              <Italic className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleUnderline().run()}>
-              <UnderlineIcon className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleStrike().run()}>
-              <Strikethrough className="h-4 w-4" />
-            </Button>
-
-            {/* 列表按钮 */}
-            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleBulletList().run()}>
-              <List className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleOrderedList().run()}>
-              <ListOrdered className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleTaskList().run()}>
-              <ListTodo className="h-4 w-4" />
-            </Button>
-
-            {/* 对齐方式按钮 */}
-            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().setTextAlign('left').run()}>
-              <AlignLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().setTextAlign('center').run()}>
-              <AlignCenter className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().setTextAlign('right').run()}>
-              <AlignRight className="h-4 w-4" />
-            </Button>
-
-            {/* 缩进按钮 */}
-            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().indent().run()}>
-              <IndentIcon className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().outdent().run()}>
-              <Outdent className="h-4 w-4" />
-            </Button>
-
-            {/* 标签按钮 */}
-            <Button variant="ghost" size="sm">
-              <Tag className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* 编辑器内容 */}
-      <div className="h-[calc(100vh-3.5rem)] overflow-auto">
-        <EditorContent editor={editor} />
-      </div>
-
-      {/* 提交按钮 */}
-      <div className="fixed bottom-6 right-6 z-10">
-        <Button 
-          size="icon"
-          onClick={handleSubmit} 
-          className="w-12 h-12 rounded-full bg-primary/80 backdrop-blur hover:bg-primary/90"
-        >
-          <Check className="h-6 w-6" />
-        </Button>
+            <div className="editor-footer">
+              <div className="footer-left">
+                {/* 可以放一些其他控件 */}
+              </div>
+              <div className="footer-right">
+                <button className="btn btn-secondary" onClick={onCancel}>取消</button>
+                <button className="btn btn-primary" onClick={handleSubmit}>保存</button>
+              </div>
+            </div>
+          </section>
+        </main>
       </div>
     </div>
   )
