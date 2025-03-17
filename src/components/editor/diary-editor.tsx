@@ -279,36 +279,24 @@ export function DiaryEditor({ initialTitle = '', initialContent = '', onSubmit, 
                   type="text" 
                   className="editor-title" 
                   placeholder="输入标题..." 
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                 />
                 <div className="editor-tags">
-                  <div className="tags-container">
-                    {tags.map((tag, index) => (
-                      <span className="tag" key={index}>
-                        #{tag}<span className="tag-remove" onClick={() => removeTag(tag)}>×</span>
-                      </span>
-                    ))}
-                  </div>
-                  <div className="tag-input-container">
-                    <input 
-                      type="text" 
-                      placeholder="添加标签..." 
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={handleTagInputKeyDown}
-                    />
-                    {tagInput.trim() && (
-                      <span 
-                        className="tag-add-btn" 
-                        onClick={handleAddTagClick}
-                      >
-                        ×
-                      </span>
-                    )}
-                  </div>
+                  {tags.map((tag, index) => (
+                    <span className="tag" key={index}>
+                      #{tag}<span className="tag-remove" onClick={() => removeTag(tag)}>×</span>
+                    </span>
+                  ))}
+                  <input 
+                    type="text" 
+                    placeholder="添加标签..." 
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={handleTagInputKeyDown}
+                    onBlur={() => tagInput.trim() && addTag(tagInput)}
+                  />
                 </div>
-                <div className="editor-divider"></div>
                 <div className="editor-content-wrapper">
                   <EditorContent 
                     editor={editor} 
