@@ -51,7 +51,7 @@ export default function EditDiaryPage() {
     fetchDiary()
   }, [id, user, toast, router])
 
-  const handleSubmit = async (title: string, content: string) => {
+  const handleSubmit = async (title: string, content: string, category: string, tags: string[]) => {
     if (!user || !diary) return
 
     try {
@@ -61,6 +61,8 @@ export default function EditDiaryPage() {
         .update({
           title,
           content,
+          category,
+          tags,
           updated_at: new Date().toISOString(),
         })
         .eq('id', diary.id)
@@ -119,6 +121,7 @@ export default function EditDiaryPage() {
     <DiaryEditor
       initialTitle={diary.title}
       initialContent={diary.content}
+      initialCategory={diary.category || '复盘'}
       onSubmit={handleSubmit}
       onCancel={() => router.push(`/diary/${diary.id}`)}
     />

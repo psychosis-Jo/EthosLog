@@ -19,7 +19,7 @@ export default function CreateDiaryPage() {
     }
   }, [user, loading, router])
 
-  const handleSubmit = async (title: string, content: string) => {
+  const handleSubmit = async (title: string, content: string, category: string, tags: string[]) => {
     if (!user) return
 
     try {
@@ -31,6 +31,8 @@ export default function CreateDiaryPage() {
             title,
             content,
             user_id: user.id,
+            category,
+            tags,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
@@ -87,6 +89,7 @@ export default function CreateDiaryPage() {
     <DiaryEditor
       initialTitle=""
       initialContent=""
+      initialCategory="复盘"
       onSubmit={handleSubmit}
       onCancel={() => router.push('/')}
     />

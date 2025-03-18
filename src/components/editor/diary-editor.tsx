@@ -36,14 +36,16 @@ import { Indent } from './extensions/indent'
 interface DiaryEditorProps {
   initialTitle?: string
   initialContent?: string
-  onSubmit: (title: string, content: string) => void
+  initialCategory?: string
+  onSubmit: (title: string, content: string, category: string, tags: string[]) => void
   onCancel: () => void
 }
 
-export function DiaryEditor({ initialTitle = '', initialContent = '', onSubmit, onCancel }: DiaryEditorProps) {
+export function DiaryEditor({ initialTitle = '', initialContent = '', initialCategory = '复盘', onSubmit, onCancel }: DiaryEditorProps) {
   const [title, setTitle] = useState(initialTitle || '')
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
+  const [category, setCategory] = useState<string>(initialCategory) // 使用传入的初始分类或默认为'复盘'
   
   // 从内容中提取标签
   React.useEffect(() => {
@@ -177,7 +179,8 @@ export function DiaryEditor({ initialTitle = '', initialContent = '', onSubmit, 
       });
     }
     
-    onSubmit(title || '无标题', content);
+    // 传递标题、内容、分类和标签到父组件
+    onSubmit(title || '无标题', content, category, tags);
   }
 
   if (!editor) {
@@ -279,8 +282,8 @@ export function DiaryEditor({ initialTitle = '', initialContent = '', onSubmit, 
                   type="text" 
                   className="editor-title" 
                   placeholder="输入标题..." 
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
                 />
                 <div className="editor-tags">
                   {tags.map((tag, index) => (
@@ -301,14 +304,51 @@ export function DiaryEditor({ initialTitle = '', initialContent = '', onSubmit, 
                   <EditorContent 
                     editor={editor} 
                     className="editor-content-area"
-                  />
-                </div>
+        />
+      </div>
               </div>
             </div>
 
             <div className="editor-footer">
               <div className="footer-left">
-                {/* 可以放一些其他控件 */}
+                <div className="category-selector">
+                  <span className="category-label">分类：</span>
+                  <div className="radio-group">
+                    <label className="radio-label">
+                      <input
+                        type="radio"
+                        name="category"
+                        value="复盘"
+                        checked={category === '复盘'}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="radio-input"
+                      />
+                      <span className="radio-text">复盘</span>
+                    </label>
+                    <label className="radio-label">
+                      <input
+                        type="radio"
+                        name="category"
+                        value="知识"
+                        checked={category === '知识'}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="radio-input"
+                      />
+                      <span className="radio-text">知识</span>
+                    </label>
+                    <label className="radio-label">
+                      <input
+                        type="radio"
+                        name="category"
+                        value="灵感"
+                        checked={category === '灵感'}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="radio-input"
+                      />
+                      <span className="radio-text">灵感</span>
+                    </label>
+                  </div>
+                </div>
               </div>
               <div className="footer-right">
                 <button className="btn btn-secondary" onClick={onCancel}>取消</button>
