@@ -329,12 +329,10 @@ export default function HomePage() {
 
   // 筛选日记
   const filteredDiaries = diaries.filter(diary => {
-    // 根据类型筛选 - 跳过类型筛选，因为数据库中没有type字段
+    // 根据分类筛选
     if (filterType !== '全部') {
-      // 临时解决方案：假设可以从内容或标题中推断类型
-      const diaryText = (diary.title + ' ' + diary.content).toLowerCase();
-      const typeText = filterType.toLowerCase();
-      if (!diaryText.includes(typeText)) {
+      // 使用diary.category字段进行筛选
+      if (diary.category !== filterType) {
         return false;
       }
     }
@@ -350,7 +348,7 @@ export default function HomePage() {
     // 根据搜索词筛选
     if (searchTerm && !(
       diary.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      diary.content.toLowerCase().includes(searchTerm.toLowerCase())
+      htmlToText(diary.content).toLowerCase().includes(searchTerm.toLowerCase())
     )) {
       return false
     }
@@ -402,7 +400,7 @@ export default function HomePage() {
             <div className="library-toolbar">
               <div className="toolbar-filters">
                 <div className="filter-group">
-                  <label htmlFor="filter-type">筛选：</label>
+                  <label htmlFor="filter-type">分类：</label>
                   <select 
                     id="filter-type" 
                     className="form-control form-control-sm"
@@ -410,10 +408,9 @@ export default function HomePage() {
                     onChange={(e) => setFilterType(e.target.value)}
                   >
                     <option>全部</option>
-                    <option>日常复盘</option>
-                    <option>项目总结</option>
-                    <option>学习笔记</option>
-                    <option>会议记录</option>
+                    <option>复盘</option>
+                    <option>知识</option>
+                    <option>灵感</option>
                   </select>
                 </div>
                 <div className="filter-group">
@@ -472,6 +469,7 @@ export default function HomePage() {
                         </Link>
                       </h3>
                       <div className="card-tags">
+                        {diary.category && <span className="category-badge">{diary.category}</span>}
                         {extractTags(diary).map((tag, index) => (
                           <span className="tag" key={index}>#{tag}</span>
                         ))}
