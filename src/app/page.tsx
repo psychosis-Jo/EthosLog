@@ -48,6 +48,44 @@ function htmlToText(html: string): string {
   return text.trim();
 }
 
+// 格式化AI分析内容，转换为HTML无序列表并加粗"-"到":"之间的内容
+function formatAnalysis(analysis: string): React.ReactNode {
+  if (!analysis) return null;
+  
+  // 检查是否已经是HTML格式（防止重复处理）
+  if (analysis.includes('<li>')) return <div dangerouslySetInnerHTML={{ __html: analysis }} />;
+  
+  // 分割为行以处理每个项目
+  const lines = analysis.split('\n').filter(line => line.trim());
+  
+  return (
+    <ul className="analysis-list">
+      {lines.map((line, index) => {
+        // 找到以"-"开头的行
+        const listItem = line.trim().startsWith('-') ? line.trim().substring(1).trim() : line.trim();
+        
+        // 查找冒号位置
+        const colonIndex = listItem.indexOf(':');
+        
+        if (colonIndex > 0) {
+          // 分离标签和内容
+          const label = listItem.substring(0, colonIndex + 1);
+          const content = listItem.substring(colonIndex + 1);
+          
+          return (
+            <li key={index}>
+              <strong>{label}</strong>{content}
+            </li>
+          );
+        }
+        
+        // 没有冒号的行
+        return <li key={index}>{listItem}</li>;
+      })}
+    </ul>
+  );
+}
+
 const sanitizeSchema = {
   ...defaultSchema,
   attributes: {
@@ -532,8 +570,8 @@ export default function HomePage() {
                 <>
                   <Separator className="my-4" />
                   <div className="p-4 bg-primary/10 rounded-md">
-                    <h3 className="font-semibold mb-2">AI分析</h3>
-                    <p>{selectedDiary.analysis}</p>
+                    <h3 className="font-semibold mb-3">智者洞察</h3>
+                    {formatAnalysis(selectedDiary.analysis)}
                   </div>
                 </>
               )}
