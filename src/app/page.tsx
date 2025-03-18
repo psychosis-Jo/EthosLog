@@ -111,6 +111,23 @@ export default function HomePage() {
   const [filterTag, setFilterTag] = useState('全部')
   const [searchTerm, setSearchTerm] = useState('')
 
+  // 自动从内容中提取标签 - 移到这里，在使用之前定义
+  const extractTags = (diary: Database['public']['tables']['diaries']['Row']) => {
+    return diary.tags || [];
+  }
+
+  // 从所有日记中获取标签集合
+  const getAllTags = () => {
+    const tagSet = new Set<string>();
+    diaries.forEach(diary => {
+      const tags = extractTags(diary);
+      tags.forEach(tag => tagSet.add(tag));
+    });
+    return Array.from(tagSet);
+  }
+
+  const allTags = getAllTags();
+
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login')
@@ -322,7 +339,7 @@ export default function HomePage() {
       }
     }
     
-    // 根据标签筛选 - 使用extractTags函数从内容中提取标签
+    // 根据标签筛选
     if (filterTag !== '全部') {
       const tags = extractTags(diary);
       if (!tags.includes(filterTag)) {
@@ -340,23 +357,6 @@ export default function HomePage() {
     
     return true
   })
-
-  // 自动从内容中提取标签
-  const extractTags = (diary: Database['public']['tables']['diaries']['Row']) => {
-    return diary.tags || [];
-  }
-
-  // 从所有日记中获取标签集合
-  const getAllTags = () => {
-    const tagSet = new Set<string>();
-    diaries.forEach(diary => {
-      const tags = extractTags(diary);
-      tags.forEach(tag => tagSet.add(tag));
-    });
-    return Array.from(tagSet);
-  }
-
-  const allTags = getAllTags();
 
   if (loading || !user) {
     return <div className="container mx-auto p-4 text-center">载入中...</div>
