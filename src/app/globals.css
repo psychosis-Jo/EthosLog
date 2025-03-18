@@ -77,6 +77,32 @@
   height: auto;
 } 
 
+/* 增强MDEditor中的任务列表显示 */
+.wmde-markdown input[type="checkbox"] {
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.wmde-markdown li {
+  line-height: 1.6;
+}
+
+.wmde-markdown ul li.task-list-item {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 0.3rem;
+  list-style-type: none;
+}
+
+.wmde-markdown ul li.task-list-item::before {
+  display: none;
+}
+
+.wmde-markdown ul.contains-task-list {
+  padding-left: 0.5rem !important;
+  margin-bottom: 1rem;
+}
+
 /* 编辑器相关样式 */
 .content-create {
   width: 100%;
@@ -535,6 +561,99 @@
 
 .prose ol ol ol > li::marker {
   content: counter(list-2) ".";
+}
+
+/* 任务列表样式 */
+.ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding: 0;
+}
+
+.ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.ProseMirror ul[data-type="taskList"] li > label {
+  margin-right: 0.5rem;
+  user-select: none;
+}
+
+.ProseMirror ul[data-type="taskList"] li > div {
+  flex: 1;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+/* 任务列表嵌套样式 */
+.ProseMirror ul[data-type="taskList"] li ul[data-type="taskList"] {
+  padding-left: 1.5em;
+}
+
+/* 任务列表渲染展示样式 */
+.wmde-markdown ul.contains-task-list {
+  list-style-type: none !important;
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}
+
+.wmde-markdown .task-list-item {
+  display: flex !important;
+  align-items: flex-start !important;
+  margin-bottom: 0.25rem !important;
+  white-space: normal !important;
+  line-height: 1.5 !important;
+}
+
+.wmde-markdown .task-list-item-checkbox {
+  margin-right: 0.5rem !important;
+  margin-top: 0.25em !important;
+  flex-shrink: 0 !important;
+  transform: translateY(0.1em) !important;
+  position: relative !important;
+}
+
+.wmde-markdown .task-list-item p {
+  margin: 0 !important;
+  display: inline !important;
+}
+
+/* 增强ProseMirror编辑器中的任务列表显示 */
+.ProseMirror ul[data-type="taskList"] {
+  list-style: none !important;
+  padding: 0 !important;
+  margin-left: 0 !important;
+}
+
+.ProseMirror ul[data-type="taskList"] li {
+  display: flex !important;
+  align-items: flex-start !important;
+  margin-bottom: 0.5rem !important;
+  white-space: normal !important;
+  line-height: 1.5 !important;
+}
+
+.ProseMirror ul[data-type="taskList"] li > label {
+  margin-right: 0.5rem !important;
+  user-select: none !important;
+  flex-shrink: 0 !important;
+  margin-top: 0.25em !important;
+  transform: translateY(0.1em) !important;
+  position: relative !important;
+}
+
+.ProseMirror ul[data-type="taskList"] li > div {
+  flex: 1 !important;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+  display: inline !important;
+}
+
+/* 任务列表嵌套样式 */
+.ProseMirror ul[data-type="taskList"] li ul[data-type="taskList"] {
+  padding-left: 1.5em !important;
+  margin-top: 0.5rem !important;
 }
 
 .content-tags {
