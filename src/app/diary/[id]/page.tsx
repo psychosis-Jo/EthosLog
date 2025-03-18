@@ -170,7 +170,7 @@ export default function DiaryDetailPage() {
             <ArrowLeft className="icon" />
           </Link>
         </div>
-        <div className="header__logo">ETHOSLOG</div>
+        <div className="header__logo" style={{ color: "white" }}>ETHOSLOG</div>
         <div className="header__search">
           <input type="search" placeholder="搜索..." className="search-input" />
         </div>

@@ -186,14 +186,9 @@ export function DiaryEditor({ initialTitle = '', initialContent = '', initialCat
             <ArrowLeft className="icon" />
           </button>
         </div>
-        <div className="header__logo">ETHOSLOG</div>
+        <div className="header__logo" style={{ color: "white" }}>ETHOSLOG</div>
         <div className="header__actions">
-          <button 
-            className="btn btn-primary"
-            onClick={handleSubmit}
-          >
-            保存
-          </button>
+          {/* 删除这里的保存按钮 */}
         </div>
       </header>
 

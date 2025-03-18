@@ -722,4 +722,51 @@
   margin-right: 6px;
   margin-bottom: 4px;
   font-weight: 600;
+}
+
+/* 主页筛选栏调整 */
+.toolbar-filters {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1rem;
+  width: 70%; /* 减少筛选区域的总宽度 */
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  min-width: auto;
+  flex: 1;
+  max-width: 230px; /* 限制最大宽度 */
+}
+
+.filter-group label {
+  margin-right: 0.5rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.filter-group select {
+  min-width: 80px;
+  width: 100%;
+  max-width: 150px; /* 限制下拉框最大宽度 */
+}
+
+/* 查看方式样式 */
+.library-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: nowrap;
+}
+
+.toolbar-views {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0; /* 防止压缩 */
+  margin-left: auto; /* 推到右侧 */
 } 

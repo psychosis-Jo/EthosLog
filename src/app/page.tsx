@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
-import { Plus, Eye, Pencil, Trash2 } from "lucide-react"
+import { Plus, Eye, Pencil, Trash2, Menu } from "lucide-react"
 import { DiaryEditor } from "@/components/editor/diary-editor"
 import type { Database } from "@/lib/supabase"  // 导入类型
 import { useToast } from "@/components/ui/use-toast"
@@ -366,12 +366,10 @@ export default function HomePage() {
       <header className="header">
         <div className="header__menu">
           <button id="sidebar-toggle" className="btn-icon" aria-label="菜单">
-            <svg className="icon" viewBox="0 0 24 24">
-              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-            </svg>
+            <Menu className="icon" />
           </button>
         </div>
-        <div className="header__logo">ETHOSLOG</div>
+        <div className="header__logo" style={{ color: "white" }}>ETHOSLOG</div>
         <div className="header__search">
           <input 
             type="search" 
@@ -437,7 +435,7 @@ export default function HomePage() {
                   onClick={() => setCurrentView('grid')}
                 >
                   <svg className="icon" viewBox="0 0 24 24">
-                    <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm0 2v8h8v-8H9zm6 6h-4v-4h4v4zM3 13v8h8v-8H3zm6 6H5v-4h4v4zm2-14h8V3h-8v2zm6 2v4h-4V5h4z"/>
+                    <path d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z"/>
                   </svg>
                 </button>
                 <button 
