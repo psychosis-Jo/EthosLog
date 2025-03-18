@@ -535,4 +535,41 @@
 
 .prose ol ol ol > li::marker {
   content: counter(list-2) ".";
+}
+
+.content-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.content-meta-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+.content-category {
+  display: inline-flex;
+  align-items: center;
+}
+
+.card-body {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  color: rgba(var(--foreground), 0.8);
+}
+
+.card-content-preview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.4;
+  max-height: 4.2em; /* 约3行文本高度 */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 } 

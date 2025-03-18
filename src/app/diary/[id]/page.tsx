@@ -81,12 +81,6 @@ export default function DiaryDetailPage() {
     fetchDiary()
   }, [id, user, toast, router])
 
-  // 从内容中提取标签
-  const extractTags = (content: string) => {
-    const matches = content.match(/#[^\s#]+/g) || []
-    return matches.map(tag => tag.substring(1)) // 移除#符号
-  }
-
   const handleDelete = async () => {
     if (!diary) return
 
@@ -126,7 +120,8 @@ export default function DiaryDetailPage() {
     return <div className="container mx-auto p-4 text-center">内容不存在或已被删除</div>
   }
 
-  const tags = diary.content ? extractTags(diary.content) : []
+  // 使用数据库中的标签
+  const tags = diary.tags || []
 
   return (
     <div className="app">
@@ -166,7 +161,10 @@ export default function DiaryDetailPage() {
                       <span className="tag" key={index}>#{tag}</span>
                     ))}
                   </div>
-                  <div className="content-date">创建于：{new Date(diary.created_at).toLocaleDateString('zh-CN')}</div>
+                  <div className="content-meta-info">
+                    <div className="content-category">分类：{diary.category || '未分类'}</div>
+                    <div className="content-date">创建于：{new Date(diary.created_at).toLocaleDateString('zh-CN')}</div>
+                  </div>
                 </div>
               </div>
               <div className="content-actions">

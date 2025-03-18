@@ -163,24 +163,11 @@ export function DiaryEditor({ initialTitle = '', initialContent = '', initialCat
   const handleSubmit = () => {
     if (!editor) return;
     
-    // 获取内容
-    let content = editor.getHTML();
+    // 保存HTML内容以保留格式和样式
+    let htmlContent = editor.getHTML();
     
-    // 标签处理 - 在内容末尾添加标签
-    if (tags.length > 0) {
-      // 确保内容末尾有段落标签
-      if (!content.endsWith('</p>')) {
-        content += '<p></p>';
-      }
-      
-      // 添加标签到内容末尾
-      tags.forEach(tag => {
-        content = content.replace('</p>', ` #${tag}</p>`);
-      });
-    }
-    
-    // 传递标题、内容、分类和标签到父组件
-    onSubmit(title || '无标题', content, category, tags);
+    // 传递标题、HTML内容、分类和标签到父组件
+    onSubmit(title || '无标题', htmlContent, category, tags);
   }
 
   if (!editor) {

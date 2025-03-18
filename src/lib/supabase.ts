@@ -29,6 +29,8 @@ export type Database = {
           title: string
           content: string
           analysis: string | null
+          category: string | null
+          tags: string[] | null
           deleted_at: string | null
           created_at: string
           updated_at: string
@@ -38,12 +40,20 @@ export type Database = {
           title: string
           content: string
           analysis?: string | null
+          category?: string | null
+          tags?: string[] | null
+          deleted_at?: string | null
+          created_at?: string
+          updated_at?: string
         }
         Update: {
           title?: string
           content?: string
           analysis?: string | null
+          category?: string | null
+          tags?: string[] | null
           deleted_at?: string | null
+          updated_at?: string
         }
       }
     }

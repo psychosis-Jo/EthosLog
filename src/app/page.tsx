@@ -30,6 +30,24 @@ import { UserNav } from "@/components/user-nav"
 import Link from 'next/link'
 import Head from 'next/head'
 
+// HTML到纯文本的转换函数
+function htmlToText(html: string): string {
+  if (!html) return '';
+  
+  // 移除HTML标签但保留文本内容
+  let text = html.replace(/<[^>]*>/g, ' ');
+  // 替换多个空格为单个空格
+  text = text.replace(/\s+/g, ' ');
+  // 替换HTML实体
+  text = text.replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"');
+  
+  return text.trim();
+}
+
 const sanitizeSchema = {
   ...defaultSchema,
   attributes: {
@@ -93,7 +111,7 @@ export default function HomePage() {
     setOpen(true)
   }
 
-  const handleSubmit = async (title: string, content: string) => {
+  const handleSubmit = async (title: string, content: string, category: string, tags: string[]) => {
     if (!user) return
 
     setOpen(false)
@@ -106,6 +124,8 @@ export default function HomePage() {
           .update({
             title,
             content,
+            category,
+            tags,
             updated_at: new Date().toISOString(),
           })
           .eq('id', editingDiary.id)
@@ -116,7 +136,7 @@ export default function HomePage() {
         setDiaries(prevDiaries =>
           prevDiaries.map(diary =>
             diary.id === editingDiary.id
-              ? { ...diary, title, content, updated_at: new Date().toISOString() }
+              ? { ...diary, title, content, category, tags, updated_at: new Date().toISOString() }
               : diary
           )
         )
@@ -142,6 +162,8 @@ export default function HomePage() {
             {
               title,
               content,
+              category,
+              tags,
               user_id: user.id,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
@@ -283,9 +305,7 @@ export default function HomePage() {
 
   // 自动从内容中提取标签
   const extractTags = (diary: Database['public']['tables']['diaries']['Row']) => {
-    const content = diary.content || '';
-    const matches = content.match(/#[^\s#]+/g) || [];
-    return matches.map(tag => tag.substring(1)); // 移除#符号
+    return diary.tags || [];
   }
 
   // 从所有日记中获取标签集合
@@ -420,7 +440,7 @@ export default function HomePage() {
                       </div>
                     </div>
                     <div className="card-body">
-                      <p>{diary.content.substring(0, 100)}...</p>
+                      <p className="card-content-preview">{htmlToText(diary.content).substring(0, 100)}...</p>
                     </div>
                     <div className="card-footer">
                       <span className="card-date">

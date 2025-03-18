@@ -30,9 +30,9 @@ export default function CreateDiaryPage() {
           {
             title,
             content,
-            user_id: user.id,
             category,
             tags,
+            user_id: user.id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
