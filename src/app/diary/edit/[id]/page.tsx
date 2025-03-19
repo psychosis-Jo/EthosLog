@@ -122,6 +122,7 @@ export default function EditDiaryPage() {
       initialTitle={diary.title}
       initialContent={diary.content}
       initialCategory={diary.category || '复盘'}
+      initialTags={diary.tags || []}
       onSubmit={handleSubmit}
       onCancel={() => router.push(`/diary/${diary.id}`)}
     />

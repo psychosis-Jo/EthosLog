@@ -90,6 +90,7 @@ export default function CreateDiaryPage() {
       initialTitle=""
       initialContent=""
       initialCategory="复盘"
+      initialTags={[]}
       onSubmit={handleSubmit}
       onCancel={() => router.push('/')}
     />

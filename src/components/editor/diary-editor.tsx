@@ -37,25 +37,33 @@ interface DiaryEditorProps {
   initialTitle?: string
   initialContent?: string
   initialCategory?: string
+  initialTags?: string[]
   onSubmit: (title: string, content: string, category: string, tags: string[]) => void
   onCancel: () => void
 }
 
-export function DiaryEditor({ initialTitle = '', initialContent = '', initialCategory = '复盘', onSubmit, onCancel }: DiaryEditorProps) {
+export function DiaryEditor({ 
+  initialTitle = '', 
+  initialContent = '', 
+  initialCategory = '复盘', 
+  initialTags = [],
+  onSubmit, 
+  onCancel 
+}: DiaryEditorProps) {
   const [title, setTitle] = useState(initialTitle || '')
-  const [tags, setTags] = useState<string[]>([])
+  const [tags, setTags] = useState<string[]>(initialTags || [])
   const [tagInput, setTagInput] = useState('')
   const [category, setCategory] = useState<string>(initialCategory) // 使用传入的初始分类或默认为'复盘'
   
-  // 从内容中提取标签
+  // 从内容中提取标签的逻辑保留但仅在没有提供initialTags时使用
   React.useEffect(() => {
-    if (initialContent) {
+    if (initialContent && initialTags.length === 0) {
       const matches = initialContent.match(/#[^\s#<>]+/g) || [];
       if (matches.length > 0) {
         setTags(matches.map(tag => tag.substring(1))); // 移除#符号
       }
     }
-  }, [initialContent]);
+  }, [initialContent, initialTags]);
 
   const defaultContent = initialContent || ''
 
