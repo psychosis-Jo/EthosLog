@@ -8,8 +8,14 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { UserNav } from '@/components/user-nav'
 import { Pencil, MoreVertical, ArrowLeft } from 'lucide-react'
-import MDEditor from '@uiw/react-md-editor'
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
+import { Viewer } from '@bytemd/react'
+import gfm from '@bytemd/plugin-gfm'
+import highlight from '@bytemd/plugin-highlight'
+import math from '@bytemd/plugin-math'
+import mermaid from '@bytemd/plugin-mermaid'
+import gemoji from '@bytemd/plugin-gemoji'
+import 'bytemd/dist/index.css'
+import 'github-markdown-css'
 import Link from 'next/link'
 import { useToast } from '@/components/ui/use-toast'
 import {
@@ -28,14 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-
-const sanitizeSchema = {
-  ...defaultSchema,
-  attributes: {
-    ...defaultSchema.attributes,
-    img: ['src', 'alt', 'title']  // 允许图片标签的这些属性
-  }
-}
+import { cn } from '@/lib/utils'
 
 // 格式化AI分析内容，转换为HTML无序列表并加粗"-"到":"之间的内容
 function formatAnalysis(analysis: string): React.ReactNode {
@@ -161,6 +160,15 @@ export default function DiaryDetailPage() {
   // 使用数据库中的标签
   const tags = diary.tags || []
 
+  // ByteMD插件
+  const plugins = [
+    gfm(),
+    highlight(),
+    math(),
+    mermaid(),
+    gemoji()
+  ]
+
   return (
     <div className="app">
       {/* 顶部导航 */}
@@ -230,10 +238,9 @@ export default function DiaryDetailPage() {
               <div className="content-main">
                 <article className="content-body markdown">
                   <div data-color-mode="light">
-                    <MDEditor.Markdown 
-                      source={diary.content} 
-                      rehypePlugins={[[rehypeSanitize, sanitizeSchema]]} 
-                      style={{ backgroundColor: 'transparent', color: 'inherit' }}
+                    <Viewer 
+                      value={diary.content} 
+                      plugins={plugins}
                     />
                   </div>
                 </article>

@@ -13,8 +13,18 @@ import { Plus, Eye, Pencil, Trash2, Menu } from "lucide-react"
 import { DiaryEditor } from "@/components/editor/diary-editor"
 import type { Database } from "@/lib/supabase"  // 导入类型
 import { useToast } from "@/components/ui/use-toast"
-import MDEditor from '@uiw/react-md-editor'
-import rehypeSanitize, { defaultSchema } from "rehype-sanitize"
+import { Viewer } from '@bytemd/react'
+import gfm from '@bytemd/plugin-gfm'
+import highlight from '@bytemd/plugin-highlight'
+import math from '@bytemd/plugin-math'
+import mermaid from '@bytemd/plugin-mermaid'
+import gemoji from '@bytemd/plugin-gemoji'
+import 'bytemd/dist/index.css'
+import 'github-markdown-css'
+import { analyzeDiary } from "@/lib/ai"
+import { UserNav } from "@/components/user-nav"
+import Link from 'next/link'
+import Head from 'next/head'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,10 +35,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { analyzeDiary } from "@/lib/ai"
-import { UserNav } from "@/components/user-nav"
-import Link from 'next/link'
-import Head from 'next/head'
 
 // HTML到纯文本的转换函数
 function htmlToText(html: string): string {
@@ -84,14 +90,6 @@ function formatAnalysis(analysis: string): React.ReactNode {
       })}
     </ul>
   );
-}
-
-const sanitizeSchema = {
-  ...defaultSchema,
-  attributes: {
-    ...defaultSchema.attributes,
-    img: ['src', 'alt', 'title']  // 允许图片标签的这些属性
-  }
 }
 
 export default function HomePage() {
@@ -356,6 +354,15 @@ export default function HomePage() {
     return true
   })
 
+  // ByteMD插件
+  const plugins = [
+    gfm(),
+    highlight(),
+    math(),
+    mermaid(),
+    gemoji()
+  ]
+
   if (loading || !user) {
     return <div className="container mx-auto p-4 text-center">载入中...</div>
   }
@@ -556,10 +563,9 @@ export default function HomePage() {
               </div>
               <Separator className="my-2" />
               <div data-color-mode="light">
-                <MDEditor.Markdown 
-                  source={selectedDiary.content} 
-                  rehypePlugins={[[rehypeSanitize, sanitizeSchema]]} 
-                  style={{ backgroundColor: 'transparent', color: 'inherit' }}
+                <Viewer 
+                  value={selectedDiary.content} 
+                  plugins={plugins}
                 />
               </div>
               {selectedDiary.analysis && (

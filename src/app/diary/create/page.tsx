@@ -1,98 +1,80 @@
 "use client"
 
-import React from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
-import { DiaryEditor } from '@/components/editor/diary-editor'
+import { ByteMDEditor } from '@/components/editor/byte-md-editor'
 import { useToast } from '@/components/ui/use-toast'
 import { analyzeDiary } from '@/lib/ai'
 
-export default function CreateDiaryPage() {
+export default function CreatePage() {
   const router = useRouter()
   const { user, loading } = useAuth()
   const { toast } = useToast()
+  const [isSaving, setIsSaving] = useState(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!loading && !user) {
       router.push('/login')
     }
-  }, [user, loading, router])
+  }, [loading, user, router])
 
   const handleSubmit = async (title: string, content: string, category: string, tags: string[]) => {
-    if (!user) return
-
-    try {
-      // 创建新日记
-      const { data, error } = await supabase
-        .from('diaries')
-        .insert([
-          {
-            title,
-            content,
-            category,
-            tags,
-            user_id: user.id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        ])
-        .select()
-
-      if (error) throw error
-      
+    if (!user) {
       toast({
-        title: '内容已创建',
-        description: '您的内容已成功保存。',
+        title: "请先登录",
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const response = await fetch('/api/diary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          content,
+          category,
+          tags,
+        }),
       })
 
-      // 触发分析
-      if (data && data[0]) {
-        try {
-          const analysis = await analyzeDiary(content)
-          
-          if (analysis) {
-            const { error } = await supabase
-              .from('diaries')
-              .update({
-                analysis,
-              })
-              .eq('id', data[0].id)
-
-            if (error) throw error
-          }
-        } catch (error) {
-          console.error('Error analyzing diary:', error)
-          // 分析失败不影响保存成功
-        }
-        
-        // 跳转到详情页
-        router.push(`/diary/${data[0].id}`)
-      } else {
-        router.push('/')
+      if (!response.ok) {
+        throw new Error('Failed to save diary')
       }
+
+      router.push('/')
     } catch (error) {
       console.error('Error saving diary:', error)
       toast({
-        title: '保存失败',
-        description: error instanceof Error ? error.message : '发生了未知错误',
+        title: "保存失败",
+        description: "请重试",
         variant: 'destructive',
       })
+    } finally {
+      setIsSaving(false)
     }
   }
 
   if (loading || !user) {
-    return <div className="container mx-auto p-4 text-center">载入中...</div>
+    return null
   }
 
   return (
-    <DiaryEditor
-      initialTitle=""
-      initialContent=""
-      initialCategory="复盘"
-      initialTags={[]}
-      onSubmit={handleSubmit}
-      onCancel={() => router.push('/')}
-    />
+    <>
+      <ByteMDEditor
+        initialTitle=""
+        initialContent=""
+        initialCategory="复盘"
+        initialTags={[]}
+        onSubmit={handleSubmit}
+        onCancel={() => router.push('/')}
+      />
+    </>
   )
 } 

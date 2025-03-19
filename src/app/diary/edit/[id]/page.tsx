@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
-import { DiaryEditor } from '@/components/editor/diary-editor'
+import { ByteMDEditor } from '@/components/editor/byte-md-editor'
 import { useToast } from '@/components/ui/use-toast'
 import { analyzeDiary } from '@/lib/ai'
 
@@ -118,7 +118,7 @@ export default function EditDiaryPage() {
   }
 
   return (
-    <DiaryEditor
+    <ByteMDEditor
       initialTitle={diary.title}
       initialContent={diary.content}
       initialCategory={diary.category || '复盘'}
