@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Editor } from '@bytemd/react'
 import 'bytemd/dist/index.css'
 import 'github-markdown-css'
@@ -10,7 +10,6 @@ import math from '@bytemd/plugin-math'
 import mermaid from '@bytemd/plugin-mermaid'
 import gemoji from '@bytemd/plugin-gemoji'
 import { ArrowLeft } from 'lucide-react'
-import rehypeSanitize from 'rehype-sanitize'
 
 // 定义中文本地化
 const zhHans: any = {
@@ -113,7 +112,7 @@ export function ByteMDEditor({
   }
 
   return (
-    <div className="app">
+    <div className="bytemd-wrapper">
       <header className="header">
         <div className="header__menu">
           <button 
@@ -124,116 +123,116 @@ export function ByteMDEditor({
             <ArrowLeft className="icon" />
           </button>
         </div>
-        <div className="bytemd-toolbar">
-          {/* ByteMD工具栏会自动渲染在这里 */}
-        </div>
+        <div className="header__logo">ETHOSLOG</div>
       </header>
+      
+      <div className="editor-content-area">
+        <div className="title-container">
+          <input
+            type="text"
+            className="editor-title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="输入标题..."
+          />
+        </div>
+        
+        <div className="bytemd-tags">
+          <div className="tags-container">
+            {tags.map((tag, index) => (
+              <span className="tag" key={index}>
+                #{tag}<span className="tag-remove" onClick={() => removeTag(tag)}>×</span>
+              </span>
+            ))}
+          </div>
+          <div className="tag-input-container">
+            <input
+              type="text"
+              placeholder="添加标签..." 
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={handleTagInputKeyDown}
+              onBlur={() => tagInput.trim() && addTag(tagInput)}
+            />
+            {tagInput && (
+              <span className="tag-add-btn" onClick={handleAddTagClick}>+</span>
+            )}
+          </div>
+        </div>
+        
+        <div className="bytemd-container">
+          <Editor
+            value={content}
+            onChange={(v) => {
+              setContent(v);
+            }}
+            plugins={plugins}
+            mode="split"
+            placeholder="在这里输入正文内容..."
+            uploadImages={async (files: File[]) => {
+              // 图片上传逻辑
+              return files.map(file => ({
+                title: file.name,
+                url: URL.createObjectURL(file),
+                alt: file.name
+              }));
+            }}
+            locale={zhHans}
+            editorConfig={{
+              lineNumbers: false,
+              lineWrapping: true,
+            }}
+          />
+        </div>
 
-      <div className="content-wrapper">
-        <main className="main">
-          <section className="content-create">
-            <div className="integrated-editor">
-              <div className="editor-container">
+        <div className="bytemd-footer">
+          <div className="category-selector">
+            <span className="category-label">分类：</span>
+            <div className="radio-group">
+              <label className="radio-label">
                 <input
-                  type="text"
-                  className="editor-title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="输入标题..."
+                  type="radio"
+                  className="radio-input"
+                  checked={category === "复盘"}
+                  onChange={() => setCategory("复盘")}
                 />
-                <div className="editor-tags">
-                  <div className="tags-container">
-                    {tags.map((tag, index) => (
-                      <span className="tag" key={index}>
-                        #{tag}<span className="tag-remove" onClick={() => removeTag(tag)}>×</span>
-                      </span>
-                    ))}
-                  </div>
-                  <div className="tag-input-container">
-                    <input
-                      type="text"
-                      placeholder="添加标签..." 
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={handleTagInputKeyDown}
-                      onBlur={() => tagInput.trim() && addTag(tagInput)}
-                    />
-                    {tagInput && (
-                      <span className="tag-add-btn" onClick={handleAddTagClick}>×</span>
-                    )}
-                  </div>
-                </div>
-                
-                <Editor
-                  value={content}
-                  onChange={(v) => {
-                    setContent(v);
-                  }}
-                  plugins={plugins}
-                  uploadImages={async (files: File[]) => {
-                    // 这里应该实现图片上传逻辑
-                    // 返回一个符合要求的数组
-                    return files.map(file => ({
-                      title: file.name,
-                      url: URL.createObjectURL(file),
-                      alt: file.name
-                    }));
-                  }}
-                  locale={zhHans}
+                <span className="radio-text">复盘</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  className="radio-input"
+                  checked={category === "知识"}
+                  onChange={() => setCategory("知识")}
                 />
-              </div>
+                <span className="radio-text">知识</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  className="radio-input"
+                  checked={category === "灵感"}
+                  onChange={() => setCategory("灵感")}
+                />
+                <span className="radio-text">灵感</span>
+              </label>
             </div>
-
-            <div className="editor-footer">
-              <div className="category-selector">
-                <span className="category-label">分类：</span>
-                <div className="radio-group">
-                  <label className="radio-label">
-                    <input
-                      type="radio"
-                      className="radio-input"
-                      checked={category === "复盘"}
-                      onChange={() => setCategory("复盘")}
-                    />
-                    <span className="radio-text">复盘</span>
-                  </label>
-                  <label className="radio-label">
-                    <input
-                      type="radio"
-                      className="radio-input"
-                      checked={category === "知识"}
-                      onChange={() => setCategory("知识")}
-                    />
-                    <span className="radio-text">知识</span>
-                  </label>
-                  <label className="radio-label">
-                    <input
-                      type="radio"
-                      className="radio-input"
-                      checked={category === "灵感"}
-                      onChange={() => setCategory("灵感")}
-                    />
-                    <span className="radio-text">灵感</span>
-                  </label>
-                </div>
-              </div>
-              <div className="editor-actions">
-                <button 
-                  onClick={onCancel}
-                  className="btn btn-secondary"
-                >
-                  取消
-                </button>
-                <button 
-                  onClick={handleSubmit}
-                  className="btn btn-primary"
-                >
-                  保存
-                </button>
-              </div>
-            </div>
-          </section>
-        </main>
+          </div>
+          <div className="editor-actions">
+            <button 
+              onClick={onCancel}
+              className="btn btn-secondary"
+            >
+              取消
+            </button>
+            <button 
+              onClick={handleSubmit}
+              className="btn btn-primary"
+            >
+              保存
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
